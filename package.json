@@ -3,80 +3,100 @@
   "version": "1.1.0",
   "description": "AWS utilities including resource naming, configuration validation, and environment management for CodeIQLabs projects",
   "sideEffects": false,
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
     },
     "./naming": {
       "types": "./dist/naming/index.d.ts",
-      "default": "./dist/naming/index.js"
+      "import": "./dist/esm/naming/index.js",
+      "require": "./dist/cjs/naming/index.js"
     },
     "./naming/*": {
       "types": "./dist/naming/*.d.ts",
-      "default": "./dist/naming/*.js"
+      "import": "./dist/esm/naming/*.js",
+      "require": "./dist/cjs/naming/*.js"
     },
     "./constants": {
       "types": "./dist/constants/index.d.ts",
-      "default": "./dist/constants/index.js"
+      "import": "./dist/esm/constants/index.js",
+      "require": "./dist/cjs/constants/index.js"
     },
     "./constants/*": {
       "types": "./dist/constants/*.d.ts",
-      "default": "./dist/constants/*.js"
+      "import": "./dist/esm/constants/*.js",
+      "require": "./dist/cjs/constants/*.js"
     },
     "./tagging": {
       "types": "./dist/tagging/index.d.ts",
-      "default": "./dist/tagging/index.js"
+      "import": "./dist/esm/tagging/index.js",
+      "require": "./dist/cjs/tagging/index.js"
     },
     "./tagging/*": {
       "types": "./dist/tagging/*.d.ts",
-      "default": "./dist/tagging/*.js"
+      "import": "./dist/esm/tagging/*.js",
+      "require": "./dist/cjs/tagging/*.js"
     },
     "./customization-config": {
       "types": "./dist/customization-config/index.d.ts",
-      "default": "./dist/customization-config/index.js"
+      "import": "./dist/esm/customization-config/index.js",
+      "require": "./dist/cjs/customization-config/index.js"
     },
     "./customization-config/*": {
       "types": "./dist/customization-config/*.d.ts",
-      "default": "./dist/customization-config/*.js"
+      "import": "./dist/esm/customization-config/*.js",
+      "require": "./dist/cjs/customization-config/*.js"
     },
     "./config": {
       "types": "./dist/config/index.d.ts",
-      "default": "./dist/config/index.js"
+      "import": "./dist/esm/config/index.js",
+      "require": "./dist/cjs/config/index.js"
     },
     "./config/schemas": {
       "types": "./dist/config/schemas/index.d.ts",
-      "default": "./dist/config/schemas/index.js"
+      "import": "./dist/esm/config/schemas/index.js",
+      "require": "./dist/cjs/config/schemas/index.js"
     },
     "./config/schemas/base": {
       "types": "./dist/config/schemas/base/index.d.ts",
-      "default": "./dist/config/schemas/base/index.js"
+      "import": "./dist/esm/config/schemas/base/index.js",
+      "require": "./dist/cjs/config/schemas/base/index.js"
     },
     "./config/schemas/resources": {
       "types": "./dist/config/schemas/resources/index.d.ts",
-      "default": "./dist/config/schemas/resources/index.js"
+      "import": "./dist/esm/config/schemas/resources/index.js",
+      "require": "./dist/cjs/config/schemas/resources/index.js"
     },
     "./config/schemas/applications": {
       "types": "./dist/config/schemas/applications/index.d.ts",
-      "default": "./dist/config/schemas/applications/index.js"
+      "import": "./dist/esm/config/schemas/applications/index.js",
+      "require": "./dist/cjs/config/schemas/applications/index.js"
     },
     "./config/utils": {
       "types": "./dist/config/utils/index.d.ts",
-      "default": "./dist/config/utils/index.js"
+      "import": "./dist/esm/config/utils/index.js",
+      "require": "./dist/cjs/config/utils/index.js"
     },
     "./cdk": {
       "types": "./dist/cdk/index.d.ts",
-      "default": "./dist/cdk/index.js"
+      "import": "./dist/esm/cdk/index.js",
+      "require": "./dist/cjs/cdk/index.js"
     },
     "./helpers": {
       "types": "./dist/helpers/index.d.ts",
-      "default": "./dist/helpers/index.js"
+      "import": "./dist/esm/helpers/index.js",
+      "require": "./dist/cjs/helpers/index.js"
     },
     "./helpers/*": {
       "types": "./dist/helpers/*.d.ts",
-      "default": "./dist/helpers/*.js"
+      "import": "./dist/esm/helpers/*.js",
+      "require": "./dist/cjs/helpers/*.js"
     }
   },
   "keywords": [
@@ -90,15 +110,26 @@
   "author": "CodeIQLabs",
   "license": "MIT",
   "scripts": {
-    "build": "npm run lint && tsc",
-    "build:no-lint": "tsc -p tsconfig.json",
-    "watch": "tsc -w",
+    "prepare": "husky",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:status": "changeset status",
+    "changeset:check": "find .changeset -name '*.md' ! -name 'README.md' ! -name 'RELEASE_TEMPLATE.md' | wc -l",
     "clean": "rimraf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:cjs:pkg": "node -e \"require('fs').mkdirSync('dist/cjs',{recursive:true});require('fs').writeFileSync('dist/cjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}\\n')\"",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:cjs:pkg && npm run lint",
+    "build:cjs:show": "tsc -p tsconfig.cjs.json --showConfig",
+    "test:load": "node tests/load-config.test.cjs",
+    "test:esm": "node tests/esm-import-test.mjs",
+    "test:all": "npm run test:load && npm run test:esm",
+    "prepublishOnly": "npm run build && npm run test:all",
+    "release": "changeset publish"
   },
   "files": [
     "dist/",
@@ -110,12 +141,15 @@
     "typescript": ">=5.4.0 <6.0.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.6",
     "@codeiqlabs/eslint-prettier-config": "file:../codeiqlabs-eslint-prettier-config",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.4.5",
     "@typescript-eslint/eslint-plugin": "^8.39.1",
     "@typescript-eslint/parser": "^8.39.1",
     "eslint": "^9.33.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
     "prettier": "^3.0.0",
     "rimraf": "^5.0.0",
     "typescript": "^5.4.0"
@@ -154,5 +188,15 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CodeIQLabs/codeiqlabs-aws-utils"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

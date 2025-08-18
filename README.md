@@ -107,7 +107,105 @@ import { getAccountIdFromEnv } from '@codeiqlabs/aws-utils';
 const accountId = getAccountIdFromEnv('BUDGETTRACK_NP_ACCOUNT', 'BudgetTrack NP');
 ```
 
+## Module Formats
+
+This package supports both ESM and CommonJS with dual publishing:
+
+### ESM (Recommended)
+
+```typescript
+import { ResourceNaming } from '@codeiqlabs/aws-utils';
+import { ENV_VALUES } from '@codeiqlabs/aws-utils/constants';
+```
+
+### CommonJS
+
+```javascript
+const { ResourceNaming } = require('@codeiqlabs/aws-utils');
+const { ENV_VALUES } = require('@codeiqlabs/aws-utils/constants');
+```
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build the package (dual ESM/CJS)
+npm run build
+
+# Run tests
+npm run test:all
+
+# Lint the code
+npm run lint
+
+# Format the code
+npm run format
+
+# Create a changeset for your changes
+npm run changeset
+```
+
 ## Contributing
+
+This package uses automated release management with changesets and enforced code quality:
+
+### Making Changes
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Update source files in `src/`
+   - Add tests if applicable
+   - Update documentation
+
+3. **Test your changes**
+   ```bash
+   npm run build
+   npm run test:all
+   npm run format:check
+   ```
+
+4. **Create a changeset**
+   ```bash
+   npm run changeset
+   ```
+   - Select the appropriate change type (patch/minor/major)
+   - Write a clear, descriptive summary
+
+5. **Commit and push**
+   ```bash
+   git add .
+   git commit -m "feat: your feature description"
+   git push origin feature/your-feature-name
+   ```
+
+6. **Create a Pull Request**
+   - The CI workflow will automatically validate your changes
+   - Ensure you have included a changeset file
+   - Wait for review and approval
+
+### Release Process
+
+The release process is fully automated:
+
+1. **Pull Request Merged** → Triggers release workflow
+2. **Changesets Action** either:
+   - Creates/updates a "Version Packages" PR (if changesets exist)
+   - Publishes the package (if Version Packages PR was merged)
+
+### Pre-commit Hooks
+
+This repository uses Husky and lint-staged to automatically:
+- Run ESLint and fix issues
+- Format code with Prettier
+- Validate TypeScript compilation
+
+### Schema Development Guidelines
 
 When adding new schemas:
 
@@ -115,6 +213,16 @@ When adding new schemas:
 2. **Use centralized validation** - Import base schemas instead of creating inline regex
 3. **Maintain backward compatibility** - Export new schemas through the main index
 4. **Document your changes** - Update this README with new schema files
+
+## Versioning & Releases
+
+We use Changesets with SemVer:
+
+- **patch**: Bug fixes, documentation updates, internal refactoring
+- **minor**: New features, new utilities, additive changes
+- **major**: Breaking changes, removed features, changed APIs
+
+Publishing targets GitHub Packages. Consumers pulling from GitHub Packages must configure their `.npmrc` accordingly.
 
 ## License
 
