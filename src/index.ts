@@ -23,6 +23,15 @@ export {
   expandEnvironmentVariables,
 } from './config';
 
+// Export commonly used configuration types
+export type {
+  ManagementAppConfig,
+  WorkloadAppConfig,
+  ManagementConfig,
+  OrganizationConfig,
+  IdentityCenterConfig,
+} from './config';
+
 // Export commonly used config types for CDK constructs
 export type {
   PermissionSetConfig,
