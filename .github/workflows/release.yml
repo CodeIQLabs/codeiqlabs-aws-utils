@@ -25,10 +25,7 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" >> ~/.npmrc
-          echo "@codeiqlabs:registry=https://npm.pkg.github.com/" >> ~/.npmrc
-          npm ci
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 

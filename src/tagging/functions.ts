@@ -6,10 +6,12 @@
  */
 
 import type { NamingConfig } from '../naming/types';
-import type { TaggingOptions, CodeIQLabsStandardTags } from './types';
+import type { TaggingOptions, StandardTags } from './types';
 import { validateEnvironment } from '../constants/environments';
 
 // Re-export types for convenience
+export type { StandardTags } from './types';
+// Backward compatibility export
 export type { CodeIQLabsStandardTags } from './types';
 
 // ============================================================================
@@ -17,33 +19,39 @@ export type { CodeIQLabsStandardTags } from './types';
 // ============================================================================
 
 /**
- * Generate standardized tags for AWS resources following CodeIQLabs standards
+ * Generate standardized tags for AWS resources following enterprise standards
  * This is framework-agnostic and can be used with any AWS deployment tool
  *
  * @param config - Naming configuration containing project and environment
- * @param options - Optional tagging configuration
+ * @param options - Tagging configuration including owner and company
  * @returns Standard tags object
  */
 export function generateStandardTags(
   config: NamingConfig,
   options: TaggingOptions = {},
-): CodeIQLabsStandardTags {
+): StandardTags {
   if (!config.project) {
     throw new Error('Project name is required for tag generation');
   }
   if (!config.environment) {
     throw new Error('Environment name is required for tag generation');
   }
+  if (!options.owner) {
+    throw new Error('Owner is required for tag generation. Please specify options.owner');
+  }
+  if (!options.company) {
+    throw new Error('Company is required for tag generation. Please specify options.company');
+  }
 
   const env = validateEnvironment(config.environment);
 
-  const standardTags: CodeIQLabsStandardTags = {
-    App: config.project, // e.g., BudgetTrack
+  const standardTags: StandardTags = {
+    App: config.project, // e.g., MyProject, BudgetTrack
     Environment: env, // validated environment
     Component: options.component || 'Unknown', // Required component
-    Owner: 'CodeIQLabs', // Standard owner
+    Owner: options.owner, // Configurable owner
     ManagedBy: options.managedBy ?? 'CDK', // Deployment tool
-    Company: 'CodeIQLabs', // Standard company
+    Company: options.company, // Configurable company
   };
 
   // Optional tags
@@ -72,15 +80,13 @@ export function generateStandardTags(
 }
 
 /**
- * Convert CodeIQLabsStandardTags to CloudFormation tag format
+ * Convert StandardTags to CloudFormation tag format
  * This is useful when you need to pass tags to CDK constructs that expect CloudFormation tag arrays
  *
  * @param tags - Standard tags object
  * @returns Array of CloudFormation tag objects with key/value properties
  */
-export function convertToCfnTags(
-  tags: CodeIQLabsStandardTags,
-): Array<{ key: string; value: string }> {
+export function convertToCfnTags(tags: StandardTags): Array<{ key: string; value: string }> {
   return Object.entries(tags)
     .filter(([, value]) => value !== undefined && value !== null && value !== '')
     .map(([key, value]) => ({

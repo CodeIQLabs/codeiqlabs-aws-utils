@@ -6,7 +6,7 @@
  */
 
 import type { NamingConfig } from '../naming/types';
-import type { TaggingOptions, CodeIQLabsStandardTags } from './types';
+import type { TaggingOptions, StandardTags } from './types';
 import { generateStandardTags } from './functions';
 
 /**
@@ -23,10 +23,10 @@ export class ResourceTagging {
   /**
    * Generate standard tags for the configured project and environment
    *
-   * @param options - Tagging options including component name
+   * @param options - Tagging options including component name, owner, and company
    * @returns Standard tags object
    */
-  standardTags(options: TaggingOptions = {}): CodeIQLabsStandardTags {
+  standardTags(options: TaggingOptions = {}): StandardTags {
     return generateStandardTags(this.config, options);
   }
 
@@ -35,13 +35,13 @@ export class ResourceTagging {
    * This is a convenience method for the most common use case
    *
    * @param component - Component name (e.g., 'VPC', 'Database', 'API')
-   * @param extraOptions - Additional tagging options
+   * @param extraOptions - Additional tagging options including owner and company
    * @returns Standard tags object
    */
   componentTags(
     component: string,
     extraOptions: Omit<TaggingOptions, 'component'> = {},
-  ): CodeIQLabsStandardTags {
+  ): StandardTags {
     return this.standardTags({ ...extraOptions, component });
   }
 

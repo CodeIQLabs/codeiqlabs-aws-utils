@@ -36,6 +36,10 @@ export interface TaggingOptions {
   component?: string;
   /** Application name (optional, defaults to project name) */
   application?: string;
+  /** Owner name or team (configurable, no default) */
+  owner?: string;
+  /** Company/organization name (configurable, no default) */
+  company?: string;
   /** Owner email address */
   ownerEmail?: string;
   /** Cost center for billing/chargeback */
@@ -51,29 +55,34 @@ export interface TaggingOptions {
 }
 
 /**
- * CodeIQLabs Standard Tag Structure
+ * Standard Tag Structure for AWS Resources
  *
- * Enforces consistent tagging across all AWS resources following CodeIQLabs standards:
- * - App: Short product/app name (e.g., BudgetTrack)
- * - Environment: np, prod, mgmt, or shared
+ * Enforces consistent tagging across all AWS resources following enterprise standards:
+ * - App: Short product/app name (e.g., MyProject, BudgetTrack)
+ * - Environment: nprd, prod, mgmt, shared, or pprd
  * - Component: System slice (e.g., Network, Data, Api, Frontend)
- * - Owner: Team or person (e.g., CodeIQLabs)
- * - OwnerEmail: Optional alias email (e.g., CodeIQLabs@gmail.com)
- * - CostCenter: For showback/chargeback (e.g., mgmt)
- * - ManagedBy: Deployment tool (e.g., CDK)
- * - Company: Organization name (e.g., CodeIQLabs)
+ * - Owner: Team or person (configurable)
+ * - OwnerEmail: Optional alias email
+ * - CostCenter: For showback/chargeback
+ * - ManagedBy: Deployment tool (e.g., CDK, Terraform)
+ * - Company: Organization name (configurable)
  * - DataClassification: Public, Internal, Confidential
- * - Repo: Short repo name (e.g., codeiqlabs-management-aws)
+ * - Repo: Short repo name
  */
-export interface CodeIQLabsStandardTags {
+export interface StandardTags {
   App: string; // Short product/app name
-  Environment: EnvironmentTag; // np, prod, mgmt, or shared
+  Environment: EnvironmentTag; // nprd, prod, mgmt, shared, or pprd
   Component: string; // System slice
-  Owner: string; // Team or person
+  Owner: string; // Team or person (configurable)
   OwnerEmail?: string; // Optional alias email
   CostCenter?: string; // For billing/chargeback
   ManagedBy: string; // Deployment tool
-  Company: string; // Organization name
+  Company: string; // Organization name (configurable)
   DataClassification?: string; // Public, Internal, Confidential
   Repo?: string; // Short repo name
 }
+
+/**
+ * @deprecated Use StandardTags instead. This alias is kept for backward compatibility.
+ */
+export type CodeIQLabsStandardTags = StandardTags;

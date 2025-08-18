@@ -1,5 +1,5 @@
 // Test ESM imports for aws-utils
-import { ResourceNaming, generateStageName, ENV_VALUES } from '../dist/esm/index.js';
+import { ResourceNaming, generateStageName, ENV_VALUES } from '../dist/index.js';
 
 console.log('Testing ESM imports for aws-utils...');
 
@@ -17,8 +17,8 @@ if (!Array.isArray(ENV_VALUES)) {
 }
 
 // Test basic functionality
-const naming = new ResourceNaming('TestProject', 'nprd');
-const stackName = naming.getStackName('TestStack');
+const naming = new ResourceNaming({ project: 'TestProject', environment: 'nprd' });
+const stackName = naming.stackName('TestStack');
 if (typeof stackName !== 'string' || !stackName.includes('TestProject')) {
   throw new Error('ResourceNaming should generate valid stack names');
 }
