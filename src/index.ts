@@ -10,8 +10,7 @@ export * from './constants/index';
 // Helper utilities (environment variables, validation, etc.)
 export * from './helpers';
 
-// CDK Exports
-export * from './cdk';
+// CDK-specific utilities have been moved to @codeiqlabs/aws-cdk package
 
 // Configuration utilities (YAML loading, schema validation, etc.)
 // Note: Config module exports are available via '@codeiqlabs/aws-utils/config' subpath
@@ -23,6 +22,23 @@ export {
   validateConfig,
   expandEnvironmentVariables,
 } from './config';
+
+// Export commonly used config types for CDK constructs
+export type {
+  PermissionSetConfig,
+  SSOAssignmentConfig,
+  OrganizationalUnitConfig,
+  ConfigMode,
+  AccountConfig,
+  DeploymentPermissions,
+  Project,
+  ProjectEnvironment,
+  CrossAccountRole,
+  GitHubOidc,
+} from './config';
+
+// Export commonly used naming types for CDK constructs
+export type { NamingConfig, BaseParamOpts, StringParamOpts, BatchParamOpts } from './naming';
 
 // Stage name generation utility for enforcing environment constants
 export { generateStageName } from './naming';
