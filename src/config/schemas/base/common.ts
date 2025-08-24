@@ -15,12 +15,6 @@ import { ENV_VALUES } from '../../../constants/environments';
 export const EnvironmentSchema = z.enum(ENV_VALUES);
 
 /**
- * Extended environment values - same as standard for now
- * All CodeIQLabs projects should use the standard environments
- */
-export const ExtendedEnvironmentSchema = z.enum(ENV_VALUES);
-
-/**
  * Project name validation - must be a non-empty string
  */
 export const ProjectNameSchema = z.string().min(1, 'Project name cannot be empty');
@@ -37,7 +31,6 @@ export const TagsSchema = z.record(z.string()).optional();
 
 // Export types for TypeScript usage
 export type Environment = z.infer<typeof EnvironmentSchema>;
-export type ExtendedEnvironment = z.infer<typeof ExtendedEnvironmentSchema>;
 export type ProjectName = z.infer<typeof ProjectNameSchema>;
 export type CompanyName = z.infer<typeof CompanyNameSchema>;
 export type Tags = z.infer<typeof TagsSchema>;

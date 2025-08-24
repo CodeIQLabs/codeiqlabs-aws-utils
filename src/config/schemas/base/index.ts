@@ -14,6 +14,8 @@ export * from './aws-primitives';
 // Re-export all common schemas and types
 export * from './common';
 
+export * from './manifest-base';
+
 /**
  * Convenience re-exports for the most commonly used base schemas
  */
@@ -38,11 +40,12 @@ export {
 export {
   // Common schemas
   EnvironmentSchema,
-  ExtendedEnvironmentSchema,
   ProjectNameSchema,
   CompanyNameSchema,
   TagsSchema,
 } from './common';
+
+export { ManifestCoreSchema, ManifestContextSchema, ManifestBaseSchema } from './manifest-base';
 
 /**
  * Convenience re-exports for the most commonly used base types
@@ -67,8 +70,9 @@ export type {
 export type {
   // Common types
   Environment,
-  ExtendedEnvironment,
   ProjectName,
   CompanyName,
   Tags,
 } from './common';
+
+export type { ManifestCore, ManifestContext, ManifestBase } from './manifest-base';

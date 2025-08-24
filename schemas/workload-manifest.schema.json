@@ -1,0 +1,227 @@
+{
+  "$ref": "#/definitions/WorkloadAppConfig",
+  "definitions": {
+    "WorkloadAppConfig": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Project name cannot be empty"
+          }
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Company name cannot be empty"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "workload"
+        },
+        "environments": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "accountId": {
+                "type": "string",
+                "pattern": "^[0-9]{12}$",
+                "errorMessage": {
+                  "pattern": "AWS Account ID must be exactly 12 digits"
+                }
+              },
+              "region": {
+                "type": "string",
+                "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+                "errorMessage": {
+                  "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+                }
+              },
+              "environment": {
+                "type": "string",
+                "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+              }
+            },
+            "required": ["accountId", "region", "environment"],
+            "additionalProperties": false
+          }
+        },
+        "management": {
+          "type": "object",
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^[0-9]{12}$",
+              "errorMessage": {
+                "pattern": "AWS Account ID must be exactly 12 digits"
+              }
+            },
+            "region": {
+              "type": "string",
+              "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+              "errorMessage": {
+                "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+            }
+          },
+          "required": ["accountId", "region", "environment"],
+          "additionalProperties": false
+        },
+        "deploymentPermissions": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["create", "adopt"],
+              "default": "create"
+            },
+            "projects": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "environments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "errorMessage": {
+                            "minLength": "Environment name is required"
+                          }
+                        },
+                        "accountId": {
+                          "type": "string",
+                          "pattern": "^[0-9]{12}$",
+                          "errorMessage": {
+                            "pattern": "AWS Account ID must be exactly 12 digits"
+                          }
+                        },
+                        "region": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+                          "errorMessage": {
+                            "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+                          }
+                        }
+                      },
+                      "required": ["name", "accountId", "region"],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "errorMessage": {
+                      "minItems": "At least one environment is required"
+                    }
+                  }
+                },
+                "required": ["name", "environments"],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "errorMessage": {
+                "minItems": "At least one project is required"
+              }
+            },
+            "crossAccountRoles": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "roleName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Role name is required"
+                    }
+                  },
+                  "trustedAccountId": {
+                    "type": "string",
+                    "pattern": "^[0-9]{12}$",
+                    "errorMessage": {
+                      "pattern": "AWS Account ID must be exactly 12 digits"
+                    }
+                  },
+                  "sessionDuration": {
+                    "type": "string",
+                    "pattern": "^P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?$",
+                    "errorMessage": {
+                      "pattern": "Invalid ISO 8601 duration format (expected: PT1H30M, P1D, etc.)"
+                    }
+                  },
+                  "externalId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["roleName", "trustedAccountId"],
+                "additionalProperties": false
+              }
+            },
+            "githubOidc": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "repositoryPattern": {
+                  "type": "string",
+                  "minLength": 1,
+                  "errorMessage": {
+                    "minLength": "Repository pattern is required"
+                  }
+                },
+                "roleName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "errorMessage": {
+                    "minLength": "Role name is required"
+                  }
+                },
+                "sessionDuration": {
+                  "type": "string",
+                  "pattern": "^P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?$",
+                  "errorMessage": {
+                    "pattern": "Invalid ISO 8601 duration format (expected: PT1H30M, P1D, etc.)"
+                  }
+                }
+              },
+              "required": ["repositoryPattern", "roleName"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["projects"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["project", "company", "type", "environments", "management"],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WorkloadAppConfig",
+  "description": "Schema for CodeIQLabs workload account manifest files",
+  "$id": "https://schemas.codeiqlabs.com/workload-manifest.json"
+}

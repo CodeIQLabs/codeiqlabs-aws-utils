@@ -1,0 +1,643 @@
+{
+  "$ref": "#/definitions/ManagementAppConfig",
+  "definitions": {
+    "ManagementAppConfig": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Project name cannot be empty"
+          }
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Company name cannot be empty"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "management"
+        },
+        "management": {
+          "type": "object",
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^[0-9]{12}$",
+              "errorMessage": {
+                "pattern": "AWS Account ID must be exactly 12 digits"
+              }
+            },
+            "region": {
+              "type": "string",
+              "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+              "errorMessage": {
+                "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+            }
+          },
+          "required": ["accountId", "region", "environment"],
+          "additionalProperties": false
+        },
+        "organization": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "rootId": {
+              "type": "string",
+              "pattern": "^r-[a-z0-9]{4,32}$",
+              "errorMessage": {
+                "pattern": "Invalid Organization root ID format (expected: r-xxxx)"
+              }
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["create", "adopt"],
+              "default": "create"
+            },
+            "featureSet": {
+              "type": "string",
+              "enum": ["ALL", "CONSOLIDATED_BILLING"],
+              "default": "ALL"
+            },
+            "organizationalUnits": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]+$",
+                    "errorMessage": {
+                      "pattern": "Key must contain only alphanumeric characters, hyphens, and underscores"
+                    }
+                  },
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "accounts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]+$",
+                          "errorMessage": {
+                            "pattern": "Key must contain only alphanumeric characters, hyphens, and underscores"
+                          }
+                        },
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                          "errorMessage": {
+                            "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                            "minLength": "Name cannot be empty"
+                          },
+                          "minLength": 1
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "errorMessage": {
+                            "format": "Invalid email address format"
+                          }
+                        },
+                        "environment": {
+                          "type": "string",
+                          "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+                        },
+                        "purpose": {
+                          "type": "string",
+                          "minLength": 1,
+                          "errorMessage": {
+                            "minLength": "Description cannot be empty",
+                            "maxLength": "Description too long (max 500 characters)"
+                          },
+                          "maxLength": 500
+                        },
+                        "tags": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        },
+                        "accountId": {
+                          "type": "string",
+                          "pattern": "^[0-9]{12}$",
+                          "errorMessage": {
+                            "pattern": "AWS Account ID must be exactly 12 digits"
+                          }
+                        }
+                      },
+                      "required": ["key", "name", "email", "environment", "purpose"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "ouId": {
+                    "type": "string",
+                    "pattern": "^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$",
+                    "errorMessage": {
+                      "pattern": "Invalid Organizational Unit ID format (expected: ou-xxxx-xxxxxxxx)"
+                    }
+                  },
+                  "parentOuId": {
+                    "type": "string",
+                    "pattern": "^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$",
+                    "errorMessage": {
+                      "pattern": "Invalid Organizational Unit ID format (expected: ou-xxxx-xxxxxxxx)"
+                    }
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["key", "name", "accounts"],
+                "additionalProperties": false
+              }
+            },
+            "serviceControlPolicies": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "policyDocument": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    ]
+                  },
+                  "targetType": {
+                    "type": "string",
+                    "enum": ["ROOT", "OU", "ACCOUNT"]
+                  },
+                  "targetIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "policyDocument", "targetType", "targetIds"],
+                "additionalProperties": false
+              }
+            },
+            "enabledPolicyTypes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "SERVICE_CONTROL_POLICY",
+                  "TAG_POLICY",
+                  "BACKUP_POLICY",
+                  "AISERVICES_OPT_OUT_POLICY"
+                ]
+              },
+              "default": ["SERVICE_CONTROL_POLICY"]
+            },
+            "tags": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["enabled", "rootId", "organizationalUnits"],
+          "additionalProperties": false
+        },
+        "identityCenter": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "instanceArn": {
+              "type": "string",
+              "pattern": "^arn:aws:sso:::instance\\/ssoins-[a-z0-9]{16}$",
+              "errorMessage": {
+                "pattern": "Invalid Identity Center instance ARN format"
+              }
+            },
+            "identitySource": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["INTERNAL", "EXTERNAL"]
+                },
+                "externalProvider": {
+                  "type": "object",
+                  "properties": {
+                    "samlMetadataDocument": {
+                      "type": "string"
+                    },
+                    "samlMetadataUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "attributeMapping": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "required": ["type"],
+              "additionalProperties": false
+            },
+            "permissionSets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Description cannot be empty",
+                      "maxLength": "Description too long (max 500 characters)"
+                    },
+                    "maxLength": 500
+                  },
+                  "sessionDuration": {
+                    "type": "string",
+                    "pattern": "^P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?$",
+                    "errorMessage": {
+                      "pattern": "Invalid ISO 8601 duration format (expected: PT1H30M, P1D, etc.)"
+                    }
+                  },
+                  "managedPolicies": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^arn:aws:iam::(aws|\\d{12}):policy\\/[a-zA-Z0-9+=,.@_/-]+$",
+                      "errorMessage": {
+                        "pattern": "Invalid AWS managed policy ARN format"
+                      }
+                    }
+                  },
+                  "inlinePolicy": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": {}
+                      }
+                    ]
+                  },
+                  "customerManagedPolicies": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                          "errorMessage": {
+                            "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                            "minLength": "Name cannot be empty"
+                          },
+                          "minLength": 1
+                        },
+                        "path": {
+                          "type": "string",
+                          "default": "/"
+                        }
+                      },
+                      "required": ["name"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "permissionsBoundary": {
+                    "type": "object",
+                    "properties": {
+                      "managedPolicyArn": {
+                        "type": "string",
+                        "pattern": "^arn:aws:iam::(aws|\\d{12}):policy\\/[a-zA-Z0-9+=,.@_/-]+$",
+                        "errorMessage": {
+                          "pattern": "Invalid AWS managed policy ARN format"
+                        }
+                      },
+                      "customerManagedPolicy": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                            "errorMessage": {
+                              "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                              "minLength": "Name cannot be empty"
+                            },
+                            "minLength": 1
+                          },
+                          "path": {
+                            "type": "string",
+                            "default": "/"
+                          }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "description"],
+                "additionalProperties": false
+              }
+            },
+            "assignments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "principalType": {
+                    "type": "string",
+                    "enum": ["USER", "GROUP"]
+                  },
+                  "principalId": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$",
+                    "errorMessage": {
+                      "pattern": "Invalid Identity Center principal ID format (expected UUID)"
+                    }
+                  },
+                  "permissionSetName": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "targetType": {
+                    "type": "string",
+                    "const": "AWS_ACCOUNT"
+                  },
+                  "targetKey": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9_-]+$",
+                    "errorMessage": {
+                      "pattern": "Key must contain only alphanumeric characters, hyphens, and underscores"
+                    }
+                  },
+                  "targetAccountId": {
+                    "type": "string",
+                    "pattern": "^[0-9]{12}$",
+                    "errorMessage": {
+                      "pattern": "AWS Account ID must be exactly 12 digits"
+                    }
+                  }
+                },
+                "required": [
+                  "principalType",
+                  "principalId",
+                  "permissionSetName",
+                  "targetType",
+                  "targetKey"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "applications": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Description cannot be empty",
+                      "maxLength": "Description too long (max 500 characters)"
+                    },
+                    "maxLength": 500
+                  },
+                  "applicationProviderArn": {
+                    "type": "string",
+                    "pattern": "^arn:aws:[a-zA-Z0-9-]+:[a-zA-Z0-9-]*:\\d{0,12}:[a-zA-Z0-9-_/:.]+$",
+                    "errorMessage": {
+                      "pattern": "Invalid AWS ARN format"
+                    }
+                  },
+                  "instanceArn": {
+                    "type": "string",
+                    "pattern": "^arn:aws:sso:::instance\\/ssoins-[a-z0-9]{16}$",
+                    "errorMessage": {
+                      "pattern": "Invalid Identity Center instance ARN format"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["ENABLED", "DISABLED"],
+                    "default": "ENABLED"
+                  },
+                  "portalOptions": {
+                    "type": "object",
+                    "properties": {
+                      "visibility": {
+                        "type": "string",
+                        "enum": ["ENABLED", "DISABLED"],
+                        "default": "ENABLED"
+                      },
+                      "signInOptions": {
+                        "type": "object",
+                        "properties": {
+                          "origin": {
+                            "type": "string",
+                            "enum": ["IDENTITY_CENTER", "APPLICATION"],
+                            "default": "IDENTITY_CENTER"
+                          },
+                          "applicationUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "applicationProviderArn", "instanceArn"],
+                "additionalProperties": false
+              }
+            },
+            "trustedTokenIssuers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "issuerUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "clientToken": {
+                    "type": "string"
+                  },
+                  "trustedTokenIssuerType": {
+                    "type": "string",
+                    "enum": ["OIDC_JWT"]
+                  },
+                  "trustedTokenIssuerConfiguration": {
+                    "type": "object",
+                    "properties": {
+                      "issuerUrl": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "audienceList": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "jwksRetrievalOption": {
+                        "type": "string",
+                        "enum": ["OPEN_ID_DISCOVERY"],
+                        "default": "OPEN_ID_DISCOVERY"
+                      }
+                    },
+                    "required": ["issuerUrl", "audienceList"],
+                    "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "issuerUrl",
+                  "trustedTokenIssuerType",
+                  "trustedTokenIssuerConfiguration"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "tags": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["enabled", "instanceArn", "permissionSets", "assignments"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["project", "company", "type", "management", "organization", "identityCenter"],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ManagementAppConfig",
+  "description": "Schema for CodeIQLabs management account manifest files",
+  "$id": "https://schemas.codeiqlabs.com/management-manifest.json"
+}
