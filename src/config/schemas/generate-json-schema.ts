@@ -2,7 +2,12 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import { ManagementAppConfigSchema, WorkloadAppConfigSchema } from './applications/index';
+import {
+  ManagementAppConfigSchema,
+  WorkloadAppConfigSchema,
+  SharedServicesAppConfigSchema,
+  BaselineAppConfigSchema,
+} from './applications/index';
 
 interface SchemaDefinition {
   name: string;
@@ -30,6 +35,18 @@ export function generateJsonSchemas(): void {
       schema: WorkloadAppConfigSchema,
       filename: 'workload-manifest',
       description: 'Schema for CodeIQLabs workload account manifest files',
+    },
+    {
+      name: 'SharedServicesAppConfig',
+      schema: SharedServicesAppConfigSchema,
+      filename: 'shared-services-manifest',
+      description: 'Schema for CodeIQLabs shared services account manifest files',
+    },
+    {
+      name: 'BaselineAppConfig',
+      schema: BaselineAppConfigSchema,
+      filename: 'baseline-manifest',
+      description: 'Schema for CodeIQLabs baseline account manifest files',
     },
   ];
 

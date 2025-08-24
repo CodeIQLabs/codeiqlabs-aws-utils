@@ -12,6 +12,14 @@
     {
       "$ref": "./workload-manifest.schema.json",
       "description": "Schema for CodeIQLabs workload account manifest files"
+    },
+    {
+      "$ref": "./shared-services-manifest.schema.json",
+      "description": "Schema for CodeIQLabs shared services account manifest files"
+    },
+    {
+      "$ref": "./baseline-manifest.schema.json",
+      "description": "Schema for CodeIQLabs baseline account manifest files"
     }
   ]
 }

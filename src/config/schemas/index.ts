@@ -44,28 +44,18 @@ export {
   // Account and management schemas
   AccountConfigSchema,
   ManagementConfigSchema,
-  PolicyDocumentSchema,
   ManagedPolicyArnSchema,
   ServicePrincipalSchema,
   ArnSchema,
-  S3BucketNameSchema,
-  StackNameSchema,
-  IamRoleNameSchema,
-  HostedZoneIdSchema,
-  DomainNameSchema,
-  AwsTagsSchema,
   // Organization schemas
   OrganizationalUnitSchema,
   OrganizationSchema,
   ServiceControlPolicySchema,
-  AccountCreationRequestSchema,
-  DelegatedAdministratorSchema,
   // Identity Center schemas
   PermissionSetConfigSchema,
   SSOAssignmentConfigSchema,
   IdentityCenterSchema,
   ApplicationConfigSchema,
-  AccountAssignmentRequestSchema,
   // IAM schemas
   CrossAccountRoleSchema,
   // GitHub OIDC schemas
@@ -75,12 +65,27 @@ export {
   // Project schemas
   ProjectEnvironmentSchema,
   ProjectSchema,
+  // Networking schemas
+  NetworkingConfigSchema,
+  VpcConfigSchema,
+  // Security schemas
+  SecurityConfigSchema,
+  SecurityGroupConfigSchema,
+  IamRoleConfigSchema,
+  KmsKeyConfigSchema,
+  // Compliance schemas
+  ComplianceConfigSchema,
+  CloudTrailConfigSchema,
+  ConfigServiceConfigSchema,
+  GuardDutyConfigSchema,
+  SecurityHubConfigSchema,
 } from './resources';
 
 export {
   ManagementAppConfigSchema,
   WorkloadAppConfigSchema,
   SharedServicesAppConfigSchema,
+  BaselineAppConfigSchema,
 } from './applications';
 
 /**
@@ -115,28 +120,18 @@ export type {
   // Account and management types
   AccountConfig,
   ManagementConfig,
-  PolicyDocument,
   ManagedPolicyArn,
   ServicePrincipal,
   Arn,
-  S3BucketName,
-  StackName,
-  IamRoleName,
-  HostedZoneId,
-  DomainName,
-  AwsTags,
   // Organization types
   OrganizationalUnitConfig,
   OrganizationConfig,
   ServiceControlPolicyConfig,
-  AccountCreationRequest,
-  DelegatedAdministrator,
   // Identity Center types
   PermissionSetConfig,
   SSOAssignmentConfig,
   IdentityCenterConfig,
   ApplicationConfig,
-  AccountAssignmentRequest,
   // IAM types
   CrossAccountRole,
   // GitHub OIDC types
@@ -146,6 +141,22 @@ export type {
   // Project types
   ProjectEnvironment,
   Project,
+  // Networking types
+  NetworkingConfig,
+  VpcConfig,
+  SubnetConfig,
+  SecurityGroupConfig,
+  // Security types
+  SecurityConfig,
+  IamRoleConfig,
+  KmsKeyConfig,
+  IamPolicyDocument,
+  // Compliance types
+  ComplianceConfig,
+  CloudTrailConfig,
+  ConfigServiceConfig,
+  GuardDutyConfig,
+  SecurityHubConfig,
 } from './resources';
 
 // Application types
@@ -153,4 +164,5 @@ export type {
   ManagementAppConfig,
   WorkloadAppConfig,
   SharedServicesAppConfig,
+  BaselineAppConfig,
 } from './applications';

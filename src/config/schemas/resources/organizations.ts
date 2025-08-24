@@ -1,13 +1,6 @@
 import { z } from 'zod';
-import {
-  BooleanSchema,
-  ConfigModeSchema,
-  KeySchema,
-  NameSchema,
-  AwsAccountIdSchema,
-  EmailSchema,
-} from '../base';
-import { AccountConfigSchema, ServicePrincipalSchema } from './accounts';
+import { BooleanSchema, ConfigModeSchema, KeySchema, NameSchema } from '../base';
+import { AccountConfigSchema } from './accounts';
 
 /**
  * AWS Organizations-specific schema components for CodeIQLabs configuration files
@@ -99,43 +92,6 @@ export const OrganizationSchema = z.object({
   tags: z.record(z.string()).optional(),
 });
 
-/**
- * Account creation request schema
- */
-export const AccountCreationRequestSchema = z.object({
-  accountName: NameSchema,
-  email: EmailSchema,
-  roleName: z.string().optional().default('OrganizationAccountAccessRole'),
-  iamUserAccessToBilling: z.enum(['ALLOW', 'DENY']).optional().default('DENY'),
-  tags: z.record(z.string()).optional(),
-});
-
-/**
- * Account move request schema (for moving accounts between OUs)
- */
-export const AccountMoveRequestSchema = z.object({
-  accountId: AwsAccountIdSchema,
-  sourceParentId: z.string(), // Current parent OU ID or root ID
-  destinationParentId: z.string(), // Target OU ID or root ID
-});
-
-/**
- * Organization invitation schema
- */
-export const OrganizationInvitationSchema = z.object({
-  targetEmail: EmailSchema,
-  targetAccountId: AwsAccountIdSchema.optional(),
-  notes: z.string().optional(),
-});
-
-/**
- * Delegated administrator configuration
- */
-export const DelegatedAdministratorSchema = z.object({
-  accountId: AwsAccountIdSchema,
-  servicePrincipal: ServicePrincipalSchema,
-});
-
 // Export types for TypeScript usage
 export type OrganizationalUnitId = z.infer<typeof OrganizationalUnitIdSchema>;
 export type OrganizationRootId = z.infer<typeof OrganizationRootIdSchema>;
@@ -144,7 +100,3 @@ export type OrganizationalUnitConfig = z.infer<typeof OrganizationalUnitSchema>;
 export type ServiceControlPolicyConfig = z.infer<typeof ServiceControlPolicySchema>;
 export type FeatureSet = z.infer<typeof FeatureSetSchema>;
 export type OrganizationConfig = z.infer<typeof OrganizationSchema>;
-export type AccountCreationRequest = z.infer<typeof AccountCreationRequestSchema>;
-export type AccountMoveRequest = z.infer<typeof AccountMoveRequestSchema>;
-export type OrganizationInvitation = z.infer<typeof OrganizationInvitationSchema>;
-export type DelegatedAdministrator = z.infer<typeof DelegatedAdministratorSchema>;

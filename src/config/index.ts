@@ -43,12 +43,16 @@ export {
   IdentityCenterSchema,
   ManagementAppConfigSchema,
   WorkloadAppConfigSchema,
+  SharedServicesAppConfigSchema,
+  BaselineAppConfigSchema,
 } from './schemas';
 
 export {
   // Application schema aliases
   ManagementAppConfigSchema as ManagementApp,
   WorkloadAppConfigSchema as WorkloadApp,
+  SharedServicesAppConfigSchema as SharedServicesApp,
+  BaselineAppConfigSchema as BaselineApp,
 } from './schemas/applications';
 
 // Most commonly used types
@@ -64,4 +68,6 @@ export type {
   IdentityCenterConfig,
   ManagementAppConfig,
   WorkloadAppConfig,
+  SharedServicesAppConfig,
+  BaselineAppConfig,
 } from './schemas';
