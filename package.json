@@ -116,7 +116,6 @@
     "prepare": "husky",
     "lint": "npx eslint .",
     "lint:fix": "npx eslint . --fix",
-    "_comment_format": "Prettier config comes from @codeiqlabs/eslint-prettier-config (no local .prettierrc)",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "changeset": "changeset",
