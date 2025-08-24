@@ -65,7 +65,8 @@ jobs:
 
   changeset-check:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Skip changeset check for Version PRs since changesets are consumed during release process
+    if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
