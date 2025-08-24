@@ -175,18 +175,6 @@ export const IdentityCenterSchema = z.object({
   tags: TagsSchema,
 });
 
-/**
- * Account assignment request schema
- */
-export const AccountAssignmentRequestSchema = z.object({
-  instanceArn: IdentityCenterInstanceArnSchema,
-  permissionSetArn: PermissionSetArnSchema,
-  principalType: z.enum(['USER', 'GROUP']),
-  principalId: PrincipalIdSchema,
-  targetType: z.literal('AWS_ACCOUNT'),
-  targetId: AwsAccountIdSchema,
-});
-
 // Export types for TypeScript usage
 export type IdentityCenterInstanceArn = z.infer<typeof IdentityCenterInstanceArnSchema>;
 export type PermissionSetArn = z.infer<typeof PermissionSetArnSchema>;
@@ -197,4 +185,3 @@ export type IdentitySource = z.infer<typeof IdentitySourceSchema>;
 export type ApplicationConfig = z.infer<typeof ApplicationConfigSchema>;
 export type TrustedTokenIssuer = z.infer<typeof TrustedTokenIssuerSchema>;
 export type IdentityCenterConfig = z.infer<typeof IdentityCenterSchema>;
-export type AccountAssignmentRequest = z.infer<typeof AccountAssignmentRequestSchema>;

@@ -22,16 +22,9 @@ export {
   // Account and management schemas
   AccountConfigSchema,
   ManagementConfigSchema,
-  PolicyDocumentSchema,
   ManagedPolicyArnSchema,
   ServicePrincipalSchema,
   ArnSchema,
-  S3BucketNameSchema,
-  StackNameSchema,
-  IamRoleNameSchema,
-  HostedZoneIdSchema,
-  DomainNameSchema,
-  AwsTagsSchema,
 } from './accounts';
 
 export {
@@ -39,8 +32,6 @@ export {
   OrganizationalUnitSchema,
   OrganizationSchema,
   ServiceControlPolicySchema,
-  AccountCreationRequestSchema,
-  DelegatedAdministratorSchema,
 } from './organizations';
 
 export {
@@ -49,7 +40,6 @@ export {
   SSOAssignmentConfigSchema,
   IdentityCenterSchema,
   ApplicationConfigSchema,
-  AccountAssignmentRequestSchema,
 } from './identity-center';
 
 export {
@@ -73,6 +63,39 @@ export {
   ProjectSchema,
 } from './projects';
 
+export {
+  // Networking schemas
+  NetworkingConfigSchema,
+  VpcConfigSchema,
+  SubnetConfigSchema,
+  RouteTableConfigSchema,
+  NatGatewayConfigSchema,
+  InternetGatewayConfigSchema,
+  VpcEndpointConfigSchema,
+  VpcFlowLogsConfigSchema,
+} from './networking';
+
+export {
+  // Security schemas
+  SecurityConfigSchema,
+  SecurityGroupConfigSchema,
+  NetworkAclConfigSchema,
+  IamRoleConfigSchema,
+  KmsKeyConfigSchema,
+  SessionManagerConfigSchema,
+} from './security';
+
+export {
+  // Compliance schemas
+  ComplianceConfigSchema,
+  CloudTrailConfigSchema,
+  ConfigServiceConfigSchema,
+  GuardDutyConfigSchema,
+  SecurityHubConfigSchema,
+  InspectorConfigSchema,
+  AccessAnalyzerConfigSchema,
+} from './compliance';
+
 /**
  * Convenience re-exports for commonly used resource types
  */
@@ -80,16 +103,9 @@ export type {
   // Account and management types
   AccountConfig,
   ManagementConfig,
-  PolicyDocument,
   ManagedPolicyArn,
   ServicePrincipal,
   Arn,
-  S3BucketName,
-  StackName,
-  IamRoleName,
-  HostedZoneId,
-  DomainName,
-  AwsTags,
 } from './accounts';
 
 export type {
@@ -97,8 +113,6 @@ export type {
   OrganizationalUnitConfig,
   OrganizationConfig,
   ServiceControlPolicyConfig,
-  AccountCreationRequest,
-  DelegatedAdministrator,
 } from './organizations';
 
 export type {
@@ -107,7 +121,6 @@ export type {
   SSOAssignmentConfig,
   IdentityCenterConfig,
   ApplicationConfig,
-  AccountAssignmentRequest,
 } from './identity-center';
 
 export type {
@@ -130,3 +143,41 @@ export type {
   ProjectEnvironment,
   Project,
 } from './projects';
+
+export type {
+  // Networking types
+  NetworkingConfig,
+  VpcConfig,
+  SubnetConfig,
+  RouteTableConfig,
+  NatGatewayConfig,
+  InternetGatewayConfig,
+  VpcEndpointConfig,
+  VpcFlowLogsConfig,
+  CidrBlock,
+  AvailabilityZone,
+  SubnetType,
+} from './networking';
+
+export type {
+  // Security types
+  SecurityConfig,
+  SecurityGroupConfig,
+  NetworkAclConfig,
+  IamRoleConfig,
+  KmsKeyConfig,
+  SessionManagerConfig,
+  SecurityGroupRule,
+  IamPolicyDocument,
+} from './security';
+
+export type {
+  // Compliance types
+  ComplianceConfig,
+  CloudTrailConfig,
+  ConfigServiceConfig,
+  GuardDutyConfig,
+  SecurityHubConfig,
+  InspectorConfig,
+  AccessAnalyzerConfig,
+} from './compliance';

@@ -14,6 +14,9 @@ export * from './workload';
 // Re-export shared services application schemas
 export * from './shared-services';
 
+// Re-export baseline application schemas
+export * from './baseline';
+
 /**
  * Convenience re-exports for commonly used application schemas
  */
@@ -23,6 +26,8 @@ export { WorkloadAppConfigSchema } from './workload';
 
 export { SharedServicesAppConfigSchema } from './shared-services';
 
+export { BaselineAppConfigSchema } from './baseline';
+
 /**
  * Convenience re-exports for commonly used application types
  */
@@ -31,3 +36,5 @@ export type { ManagementAppConfig } from './management';
 export type { WorkloadAppConfig } from './workload';
 
 export type { SharedServicesAppConfig } from './shared-services';
+
+export type { BaselineAppConfig } from './baseline';

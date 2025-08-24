@@ -1,0 +1,2193 @@
+{
+  "$ref": "#/definitions/BaselineAppConfig",
+  "definitions": {
+    "BaselineAppConfig": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Project name cannot be empty"
+          }
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Company name cannot be empty"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "baseline"
+        },
+        "management": {
+          "type": "object",
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^[0-9]{12}$",
+              "errorMessage": {
+                "pattern": "AWS Account ID must be exactly 12 digits"
+              }
+            },
+            "region": {
+              "type": "string",
+              "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+              "errorMessage": {
+                "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+            }
+          },
+          "required": ["accountId", "region", "environment"],
+          "additionalProperties": false
+        },
+        "networking": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["create", "adopt"],
+              "default": "create"
+            },
+            "vpc": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "cidr": {
+                  "type": "string",
+                  "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$",
+                  "errorMessage": {
+                    "pattern": "Invalid CIDR block format (expected: 10.0.0.0/16)"
+                  }
+                },
+                "region": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+                  "errorMessage": {
+                    "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+                  }
+                },
+                "enableDnsHostnames": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "enableDnsSupport": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "subnets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": ["public", "private", "isolated"]
+                      },
+                      "cidr": {
+                        "type": "string",
+                        "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$",
+                        "errorMessage": {
+                          "pattern": "Invalid CIDR block format (expected: 10.0.0.0/16)"
+                        }
+                      },
+                      "availabilityZone": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2}-[a-z]+-\\d+[a-z]$",
+                        "errorMessage": {
+                          "pattern": "Invalid Availability Zone format (expected: us-east-1a)"
+                        }
+                      },
+                      "mapPublicIpOnLaunch": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "default": false
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name", "type", "cidr", "availabilityZone"],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1,
+                  "errorMessage": {
+                    "minItems": "At least one subnet is required"
+                  }
+                },
+                "routeTables": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "routes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "destination": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "cidr"
+                                    },
+                                    "cidr": {
+                                      "type": "string",
+                                      "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid CIDR block format (expected: 10.0.0.0/16)"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type", "cidr"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "prefix-list"
+                                    },
+                                    "prefixListId": {
+                                      "type": "string",
+                                      "pattern": "^pl-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid prefix list ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type", "prefixListId"],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "target": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "internet-gateway"
+                                    },
+                                    "gatewayId": {
+                                      "type": "string",
+                                      "pattern": "^igw-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid Internet Gateway ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "nat-gateway"
+                                    },
+                                    "gatewayId": {
+                                      "type": "string",
+                                      "pattern": "^nat-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid NAT Gateway ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "vpc-endpoint"
+                                    },
+                                    "endpointId": {
+                                      "type": "string",
+                                      "pattern": "^vpce-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid VPC Endpoint ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "transit-gateway"
+                                    },
+                                    "gatewayId": {
+                                      "type": "string",
+                                      "pattern": "^tgw-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid Transit Gateway ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "vpc-peering"
+                                    },
+                                    "connectionId": {
+                                      "type": "string",
+                                      "pattern": "^pcx-[a-z0-9]+$",
+                                      "errorMessage": {
+                                        "pattern": "Invalid VPC Peering Connection ID"
+                                      }
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            },
+                            "description": {
+                              "type": "string",
+                              "minLength": 1,
+                              "errorMessage": {
+                                "minLength": "Description cannot be empty",
+                                "maxLength": "Description too long (max 500 characters)"
+                              },
+                              "maxLength": 500
+                            }
+                          },
+                          "required": ["destination", "target"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "subnetAssociations": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                          "errorMessage": {
+                            "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                            "minLength": "Name cannot be empty"
+                          },
+                          "minLength": 1
+                        }
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                  }
+                },
+                "natGateways": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "subnetName": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "allocationId": {
+                        "type": "string",
+                        "pattern": "^eipalloc-[a-z0-9]+$",
+                        "errorMessage": {
+                          "pattern": "Invalid Allocation ID"
+                        }
+                      },
+                      "connectivityType": {
+                        "type": "string",
+                        "enum": ["public", "private"],
+                        "default": "public"
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name", "subnetName"],
+                    "additionalProperties": false
+                  }
+                },
+                "internetGateway": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "tags": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "vpcEndpoints": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "service": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "s3",
+                              "dynamodb",
+                              "ec2",
+                              "ssm",
+                              "ssmmessages",
+                              "ec2messages",
+                              "kms",
+                              "logs",
+                              "monitoring",
+                              "events",
+                              "secretsmanager",
+                              "lambda",
+                              "sts",
+                              "elasticloadbalancing"
+                            ]
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": ["Gateway", "Interface"]
+                      },
+                      "subnetNames": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                          "errorMessage": {
+                            "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                            "minLength": "Name cannot be empty"
+                          },
+                          "minLength": 1
+                        }
+                      },
+                      "routeTableNames": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                          "errorMessage": {
+                            "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                            "minLength": "Name cannot be empty"
+                          },
+                          "minLength": 1
+                        }
+                      },
+                      "policyDocument": {
+                        "type": "object",
+                        "additionalProperties": {}
+                      },
+                      "privateDnsEnabled": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "default": true
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name", "service", "type"],
+                    "additionalProperties": false
+                  }
+                },
+                "flowLogs": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": true
+                    },
+                    "destination": {
+                      "type": "string",
+                      "enum": ["cloudwatch", "s3"],
+                      "default": "cloudwatch"
+                    },
+                    "logFormat": {
+                      "type": "string"
+                    },
+                    "logGroup": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "s3Bucket": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "trafficType": {
+                      "type": "string",
+                      "enum": ["ALL", "ACCEPT", "REJECT"],
+                      "default": "ALL"
+                    },
+                    "tags": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "tags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["name", "cidr", "region", "subnets"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["vpc"],
+          "additionalProperties": false
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["create", "adopt"],
+              "default": "create"
+            },
+            "securityGroups": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Description cannot be empty",
+                      "maxLength": "Description too long (max 500 characters)"
+                    },
+                    "maxLength": 500
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["ingress", "egress"]
+                        },
+                        "protocol": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["tcp", "udp", "icmp", "icmpv6"]
+                            },
+                            {
+                              "type": "integer",
+                              "minimum": -1,
+                              "maximum": 255
+                            }
+                          ]
+                        },
+                        "port": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 65535
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 65535
+                                },
+                                "to": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 65535
+                                }
+                              },
+                              "required": ["from", "to"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "source": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "cidr"
+                                },
+                                "cidr": {
+                                  "type": "string",
+                                  "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$",
+                                  "errorMessage": {
+                                    "pattern": "Invalid CIDR block format (expected: 10.0.0.0/16)"
+                                  }
+                                }
+                              },
+                              "required": ["type", "cidr"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "security-group"
+                                },
+                                "securityGroupId": {
+                                  "type": "string",
+                                  "pattern": "^sg-[a-z0-9]+$",
+                                  "errorMessage": {
+                                    "pattern": "Invalid Security Group ID"
+                                  }
+                                },
+                                "securityGroupName": {
+                                  "type": "string",
+                                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                                  "errorMessage": {
+                                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                                    "minLength": "Name cannot be empty"
+                                  },
+                                  "minLength": 1
+                                }
+                              },
+                              "required": ["type"],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "prefix-list"
+                                },
+                                "prefixListId": {
+                                  "type": "string",
+                                  "pattern": "^pl-[a-z0-9]+$",
+                                  "errorMessage": {
+                                    "pattern": "Invalid Prefix List ID"
+                                  }
+                                }
+                              },
+                              "required": ["type", "prefixListId"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "description": {
+                          "type": "string",
+                          "minLength": 1,
+                          "errorMessage": {
+                            "minLength": "Description cannot be empty",
+                            "maxLength": "Description too long (max 500 characters)"
+                          },
+                          "maxLength": 500
+                        }
+                      },
+                      "required": ["type", "protocol", "source"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "description"],
+                "additionalProperties": false
+              }
+            },
+            "networkAcls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "ruleNumber": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 32766
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": ["ingress", "egress"]
+                        },
+                        "protocol": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": ["tcp", "udp", "icmp", "icmpv6"]
+                            },
+                            {
+                              "type": "integer",
+                              "minimum": -1,
+                              "maximum": 255
+                            }
+                          ]
+                        },
+                        "port": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 65535
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 65535
+                                },
+                                "to": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 65535
+                                }
+                              },
+                              "required": ["from", "to"],
+                              "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "source": {
+                          "type": "string",
+                          "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$",
+                          "errorMessage": {
+                            "pattern": "Invalid CIDR block format (expected: 10.0.0.0/16)"
+                          }
+                        },
+                        "action": {
+                          "type": "string",
+                          "enum": ["allow", "deny"]
+                        },
+                        "description": {
+                          "type": "string",
+                          "minLength": 1,
+                          "errorMessage": {
+                            "minLength": "Description cannot be empty",
+                            "maxLength": "Description too long (max 500 characters)"
+                          },
+                          "maxLength": 500
+                        }
+                      },
+                      "required": ["ruleNumber", "type", "protocol", "source", "action"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "subnetAssociations": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    }
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false
+              }
+            },
+            "iamRoles": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Description cannot be empty",
+                      "maxLength": "Description too long (max 500 characters)"
+                    },
+                    "maxLength": 500
+                  },
+                  "assumeRolePolicy": {
+                    "type": "object",
+                    "properties": {
+                      "version": {
+                        "type": "string",
+                        "default": "2012-10-17"
+                      },
+                      "statements": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "effect": {
+                              "type": "string",
+                              "enum": ["Allow", "Deny"]
+                            },
+                            "actions": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "resources": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "conditions": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "principals": {
+                              "type": "object",
+                              "properties": {
+                                "AWS": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "Service": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "Federated": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["effect", "actions"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": ["statements"],
+                    "additionalProperties": false
+                  },
+                  "inlinePolicies": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "default": "2012-10-17"
+                        },
+                        "statements": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "effect": {
+                                "type": "string",
+                                "enum": ["Allow", "Deny"]
+                              },
+                              "actions": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                ]
+                              },
+                              "resources": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                ]
+                              },
+                              "conditions": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "principals": {
+                                "type": "object",
+                                "properties": {
+                                  "AWS": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "Service": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "Federated": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": ["effect", "actions"],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": ["statements"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "managedPolicyArns": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "maxSessionDuration": {
+                    "type": "integer",
+                    "minimum": 3600,
+                    "maximum": 43200
+                  },
+                  "path": {
+                    "type": "string",
+                    "default": "/"
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "assumeRolePolicy"],
+                "additionalProperties": false
+              }
+            },
+            "kmsKeys": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                    "errorMessage": {
+                      "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                      "minLength": "Name cannot be empty"
+                    },
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "errorMessage": {
+                      "minLength": "Description cannot be empty",
+                      "maxLength": "Description too long (max 500 characters)"
+                    },
+                    "maxLength": 500
+                  },
+                  "keyUsage": {
+                    "type": "string",
+                    "enum": ["ENCRYPT_DECRYPT", "SIGN_VERIFY"],
+                    "default": "ENCRYPT_DECRYPT"
+                  },
+                  "keySpec": {
+                    "type": "string",
+                    "enum": [
+                      "SYMMETRIC_DEFAULT",
+                      "RSA_2048",
+                      "RSA_3072",
+                      "RSA_4096",
+                      "ECC_NIST_P256",
+                      "ECC_NIST_P384",
+                      "ECC_NIST_P521",
+                      "ECC_SECG_P256K1"
+                    ],
+                    "default": "SYMMETRIC_DEFAULT"
+                  },
+                  "policy": {
+                    "type": "object",
+                    "properties": {
+                      "version": {
+                        "type": "string",
+                        "default": "2012-10-17"
+                      },
+                      "statements": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "effect": {
+                              "type": "string",
+                              "enum": ["Allow", "Deny"]
+                            },
+                            "actions": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "resources": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              ]
+                            },
+                            "conditions": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "principals": {
+                              "type": "object",
+                              "properties": {
+                                "AWS": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "Service": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "Federated": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": ["effect", "actions"],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": ["statements"],
+                    "additionalProperties": false
+                  },
+                  "enableKeyRotation": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ],
+                    "default": true
+                  },
+                  "deletionWindowInDays": {
+                    "type": "integer",
+                    "minimum": 7,
+                    "maximum": 30
+                  },
+                  "aliases": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["name", "description"],
+                "additionalProperties": false
+              }
+            },
+            "sessionManager": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "s3BucketName": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "s3KeyPrefix": {
+                  "type": "string"
+                },
+                "cloudWatchLogGroupName": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "cloudWatchEncryptionEnabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "idleSessionTimeout": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 60,
+                  "default": 20
+                },
+                "maxSessionDuration": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 60,
+                  "default": 60
+                },
+                "runAsEnabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": false
+                },
+                "runAsDefaultUser": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "compliance": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["create", "adopt"],
+              "default": "create"
+            },
+            "cloudTrail": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "s3Config": {
+                  "type": "object",
+                  "properties": {
+                    "bucketName": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "keyPrefix": {
+                      "type": "string"
+                    },
+                    "includeGlobalServiceEvents": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": true
+                    },
+                    "isMultiRegionTrail": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": true
+                    },
+                    "enableLogFileValidation": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": true
+                    }
+                  },
+                  "required": ["bucketName"],
+                  "additionalProperties": false
+                },
+                "cloudWatchConfig": {
+                  "type": "object",
+                  "properties": {
+                    "logGroupName": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "roleArn": {
+                      "type": "string",
+                      "pattern": "^arn:aws:iam::\\d{12}:role\\/.*$",
+                      "errorMessage": {
+                        "pattern": "Invalid IAM role ARN"
+                      }
+                    }
+                  },
+                  "required": ["logGroupName"],
+                  "additionalProperties": false
+                },
+                "eventSelectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "readWriteType": {
+                        "type": "string",
+                        "enum": ["All", "ReadOnly", "WriteOnly"],
+                        "default": "All"
+                      },
+                      "includeManagementEvents": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "default": true
+                      },
+                      "dataResources": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string"
+                            },
+                            "values": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": ["type", "values"],
+                          "additionalProperties": false
+                        }
+                      },
+                      "excludeManagementEventSources": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "insightSelectors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "insightType": {
+                        "type": "string",
+                        "enum": ["ApiCallRateInsight"]
+                      }
+                    },
+                    "required": ["insightType"],
+                    "additionalProperties": false
+                  }
+                },
+                "kmsKeyId": {
+                  "type": "string"
+                },
+                "snsTopicName": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "tags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["name", "s3Config"],
+              "additionalProperties": false
+            },
+            "configService": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "recorder": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "roleArn": {
+                      "type": "string",
+                      "pattern": "^arn:aws:iam::\\d{12}:role\\/.*$",
+                      "errorMessage": {
+                        "pattern": "Invalid IAM role ARN"
+                      }
+                    },
+                    "recordingGroup": {
+                      "type": "object",
+                      "properties": {
+                        "allSupported": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ],
+                          "default": true
+                        },
+                        "includeGlobalResourceTypes": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "string"
+                            }
+                          ],
+                          "default": true
+                        },
+                        "resourceTypes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["name"],
+                  "additionalProperties": false
+                },
+                "deliveryChannel": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "s3BucketName": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                      "errorMessage": {
+                        "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                        "minLength": "Name cannot be empty"
+                      },
+                      "minLength": 1
+                    },
+                    "s3KeyPrefix": {
+                      "type": "string"
+                    },
+                    "snsTopicArn": {
+                      "type": "string",
+                      "pattern": "^arn:aws:sns:.*$",
+                      "errorMessage": {
+                        "pattern": "Invalid SNS topic ARN"
+                      }
+                    },
+                    "deliveryFrequency": {
+                      "type": "string",
+                      "enum": [
+                        "One_Hour",
+                        "Three_Hours",
+                        "Six_Hours",
+                        "Twelve_Hours",
+                        "TwentyFour_Hours"
+                      ],
+                      "default": "TwentyFour_Hours"
+                    }
+                  },
+                  "required": ["name", "s3BucketName"],
+                  "additionalProperties": false
+                },
+                "rules": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "description": {
+                        "type": "string",
+                        "minLength": 1,
+                        "errorMessage": {
+                          "minLength": "Description cannot be empty",
+                          "maxLength": "Description too long (max 500 characters)"
+                        },
+                        "maxLength": 500
+                      },
+                      "source": {
+                        "type": "object",
+                        "properties": {
+                          "owner": {
+                            "type": "string",
+                            "enum": ["AWS", "CUSTOM_LAMBDA"]
+                          },
+                          "sourceIdentifier": {
+                            "type": "string"
+                          },
+                          "sourceDetails": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "eventSource": {
+                                  "type": "string"
+                                },
+                                "messageType": {
+                                  "type": "string"
+                                },
+                                "maximumExecutionFrequency": {
+                                  "type": "string",
+                                  "enum": [
+                                    "One_Hour",
+                                    "Three_Hours",
+                                    "Six_Hours",
+                                    "Twelve_Hours",
+                                    "TwentyFour_Hours"
+                                  ]
+                                }
+                              },
+                              "required": ["eventSource", "messageType"],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": ["owner", "sourceIdentifier"],
+                        "additionalProperties": false
+                      },
+                      "inputParameters": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "scope": {
+                        "type": "object",
+                        "properties": {
+                          "complianceResourceTypes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "tagKey": {
+                            "type": "string"
+                          },
+                          "tagValue": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": ["name", "source"],
+                    "additionalProperties": false
+                  }
+                },
+                "conformancePacks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "templateS3Uri": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "templateBody": {
+                        "type": "string"
+                      },
+                      "deliveryS3Bucket": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "deliveryS3KeyPrefix": {
+                        "type": "string"
+                      },
+                      "inputParameters": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["recorder", "deliveryChannel"],
+              "additionalProperties": false
+            },
+            "guardDuty": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "findingPublishing": {
+                  "type": "object",
+                  "properties": {
+                    "frequency": {
+                      "type": "string",
+                      "enum": ["FIFTEEN_MINUTES", "ONE_HOUR", "SIX_HOURS"],
+                      "default": "SIX_HOURS"
+                    },
+                    "destinationArn": {
+                      "type": "string",
+                      "pattern": "^arn:aws:s3:::.*$",
+                      "errorMessage": {
+                        "pattern": "Invalid S3 bucket ARN"
+                      }
+                    },
+                    "kmsKeyArn": {
+                      "type": "string",
+                      "pattern": "^arn:aws:kms:.*$",
+                      "errorMessage": {
+                        "pattern": "Invalid KMS key ARN"
+                      }
+                    }
+                  },
+                  "required": ["destinationArn"],
+                  "additionalProperties": false
+                },
+                "malwareProtection": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "s3Protection": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "eksProtection": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "rdsProtection": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "lambdaProtection": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "invitationId": {
+                  "type": "string"
+                },
+                "masterId": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "securityHub": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "enableDefaultStandards": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "standards": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "arn": {
+                        "type": "string",
+                        "pattern": "^arn:aws:securityhub:.*$",
+                        "errorMessage": {
+                          "pattern": "Invalid Security Hub standard ARN"
+                        }
+                      },
+                      "enabled": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "default": true
+                      }
+                    },
+                    "required": ["arn"],
+                    "additionalProperties": false
+                  }
+                },
+                "autoEnableControls": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "inspector": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "enableEc2": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "enableEcr": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "enableLambda": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "accessAnalyzer": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "default": true
+                },
+                "analyzerName": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                  "errorMessage": {
+                    "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                    "minLength": "Name cannot be empty"
+                  },
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["ACCOUNT", "ORGANIZATION"],
+                  "default": "ACCOUNT"
+                },
+                "archiveRules": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "ruleName": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "errorMessage": {
+                          "pattern": "Name must contain only alphanumeric characters, spaces, hyphens, and underscores",
+                          "minLength": "Name cannot be empty"
+                        },
+                        "minLength": 1
+                      },
+                      "filter": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "required": ["ruleName", "filter"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": ["analyzerName"],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "createDefaultSecurityResources": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableVpcFlowLogs": {
+              "type": "boolean",
+              "default": true
+            },
+            "createDefaultKmsKeys": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableAllComplianceServices": {
+              "type": "boolean",
+              "default": true
+            },
+            "defaultTags": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resourcePrefix": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["project", "company", "type", "management", "networking"],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BaselineAppConfig",
+  "description": "Schema for CodeIQLabs baseline account manifest files",
+  "$id": "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/baseline-manifest.schema.json"
+}

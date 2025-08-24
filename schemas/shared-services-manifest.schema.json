@@ -1,0 +1,79 @@
+{
+  "$ref": "#/definitions/SharedServicesAppConfig",
+  "definitions": {
+    "SharedServicesAppConfig": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Project name cannot be empty"
+          }
+        },
+        "company": {
+          "type": "string",
+          "minLength": 1,
+          "errorMessage": {
+            "minLength": "Company name cannot be empty"
+          }
+        },
+        "type": {
+          "type": "string",
+          "const": "shared"
+        },
+        "sharedServices": {
+          "type": "object",
+          "properties": {
+            "services": {
+              "type": "object",
+              "properties": {
+                "monitoring": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "centralLogging": {
+                      "type": "boolean",
+                      "default": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "networking": {
+                  "type": "object",
+                  "properties": {
+                    "transitGateway": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "asn": {
+                          "type": "number"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["project", "company", "type", "sharedServices"],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SharedServicesAppConfig",
+  "description": "Schema for CodeIQLabs shared services account manifest files",
+  "$id": "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/shared-services-manifest.schema.json"
+}
