@@ -223,5 +223,5 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "WorkloadAppConfig",
   "description": "Schema for CodeIQLabs workload account manifest files",
-  "$id": "https://schemas.codeiqlabs.com/workload-manifest.json"
+  "$id": "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json"
 }

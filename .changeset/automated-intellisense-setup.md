@@ -1,32 +1,38 @@
 ---
-"@codeiqlabs/aws-utils": minor
+'@codeiqlabs/aws-utils': minor
 ---
 
 feat: Add automated IntelliSense setup for manifest files
 
-This release introduces a comprehensive automated IntelliSense setup system that provides seamless autocomplete, validation, and hover documentation for CodeIQLabs manifest files in both VS Code and IntelliJ IDEA.
+This release introduces a comprehensive automated IntelliSense setup system that provides seamless
+autocomplete, validation, and hover documentation for CodeIQLabs manifest files in both VS Code and
+IntelliJ IDEA.
 
 ## New Features
 
 ### 🔧 CLI Tool for IntelliSense Setup
+
 - Added `npx @codeiqlabs/aws-utils setup-intellisense` command
 - Auto-detects manifest types (management/workload/shared)
 - Configures both VS Code and IntelliJ IDEA automatically
 - Cross-platform compatibility (Windows, macOS, Linux)
 
 ### 📋 JSON Schema Generation
+
 - Automated generation of JSON Schema files from Zod schemas
 - HTTP-based schema distribution for reliable cross-editor support
 - Real-time validation and error reporting
 - Contextual autocomplete suggestions
 
 ### 🎯 Enhanced Schema Structure
+
 - Fixed schema hierarchy to match actual YAML structure
 - Properties now appear in correct contextual locations
 - Improved validation with detailed error messages
 - Support for nested property autocomplete
 
 ### 🌐 HTTP Schema Distribution
+
 - Schemas hosted via GitHub raw URLs for universal access
 - Eliminates local file path resolution issues
 - Always up-to-date schemas without manual updates

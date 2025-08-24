@@ -639,5 +639,5 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ManagementAppConfig",
   "description": "Schema for CodeIQLabs management account manifest files",
-  "$id": "https://schemas.codeiqlabs.com/management-manifest.json"
+  "$id": "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json"
 }
