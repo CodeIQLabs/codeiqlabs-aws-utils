@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import {
   AwsAccountIdSchema,
-  AwsRegionSchema,
   EnvironmentSchema,
   KeySchema,
   NameSchema,
   EmailSchema,
   DescriptionSchema,
   TagsSchema,
+  AwsRegionSchema,
 } from '../base';
 
 /**

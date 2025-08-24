@@ -31,10 +31,12 @@ export {
   AwsAccountIdSchema,
   // Common schemas
   EnvironmentSchema,
-  ExtendedEnvironmentSchema,
   ProjectNameSchema,
   CompanyNameSchema,
   TagsSchema,
+  ManifestCoreSchema,
+  ManifestContextSchema,
+  ManifestBaseSchema,
 } from './base';
 
 // Resource schemas - AWS service-specific
@@ -75,8 +77,11 @@ export {
   ProjectSchema,
 } from './resources';
 
-// Application schemas - complete configurations
-export { ManagementAppConfigSchema, WorkloadAppConfigSchema } from './applications';
+export {
+  ManagementAppConfigSchema,
+  WorkloadAppConfigSchema,
+  SharedServicesAppConfigSchema,
+} from './applications';
 
 /**
  * Convenience re-exports for commonly used types
@@ -97,10 +102,12 @@ export type {
   AwsAccountId,
   // Common types
   Environment,
-  ExtendedEnvironment,
   ProjectName,
   CompanyName,
   Tags,
+  ManifestCore,
+  ManifestContext,
+  ManifestBase,
 } from './base';
 
 // Resource types
@@ -142,4 +149,8 @@ export type {
 } from './resources';
 
 // Application types
-export type { ManagementAppConfig, WorkloadAppConfig } from './applications';
+export type {
+  ManagementAppConfig,
+  WorkloadAppConfig,
+  SharedServicesAppConfig,
+} from './applications';

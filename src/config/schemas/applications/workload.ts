@@ -1,7 +1,12 @@
 import { z } from 'zod';
-import { ProjectNameSchema, CompanyNameSchema } from '../base';
-import { ManagementConfigSchema } from '../resources/accounts';
-import { DeploymentPermissionsSchema } from '../resources/deployment-permissions';
+import { ManagementConfigSchema } from '../resources';
+import { DeploymentPermissionsSchema } from '../resources';
+import {
+  AwsAccountIdSchema,
+  AwsRegionSchema,
+  EnvironmentSchema,
+  ManifestBaseSchema,
+} from '../base';
 
 /**
  * Workload application configuration schemas for CodeIQLabs AWS projects
@@ -15,11 +20,19 @@ import { DeploymentPermissionsSchema } from '../resources/deployment-permissions
  * Complete workload account configuration schema
  * This is the root schema for workload project configurations
  */
-export const WorkloadAppConfigSchema = z.object({
-  project: ProjectNameSchema,
-  company: CompanyNameSchema,
-  management: ManagementConfigSchema,
-  deploymentPermissions: DeploymentPermissionsSchema.optional(),
-});
+export const WorkloadAppConfigSchema = ManifestBaseSchema.merge(
+  z.object({
+    type: z.literal('workload'),
+    environments: z.record(
+      z.object({
+        accountId: AwsAccountIdSchema,
+        region: AwsRegionSchema,
+        environment: EnvironmentSchema,
+      }),
+    ),
+    management: ManagementConfigSchema,
+    deploymentPermissions: DeploymentPermissionsSchema.optional(),
+  }),
+);
 
 export type WorkloadAppConfig = z.infer<typeof WorkloadAppConfigSchema>;

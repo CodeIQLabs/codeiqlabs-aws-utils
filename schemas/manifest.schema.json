@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://schemas.codeiqlabs.com/manifest.json",
+  "title": "CodeIQLabs Manifest",
+  "description": "Auto-detecting schema for CodeIQLabs manifest files",
+  "type": "object",
+  "oneOf": [
+    {
+      "$ref": "./management-manifest.schema.json",
+      "description": "Schema for CodeIQLabs management account manifest files"
+    },
+    {
+      "$ref": "./workload-manifest.schema.json",
+      "description": "Schema for CodeIQLabs workload account manifest files"
+    }
+  ]
+}

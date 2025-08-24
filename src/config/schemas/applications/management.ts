@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { ProjectNameSchema, CompanyNameSchema } from '../base';
-import { ManagementConfigSchema } from '../resources/accounts';
-import { OrganizationSchema } from '../resources/organizations';
-import { IdentityCenterSchema } from '../resources/identity-center';
+import { ManifestBaseSchema } from '../base';
+import { ManagementConfigSchema } from '../resources';
+import { OrganizationSchema } from '../resources';
+import { IdentityCenterSchema } from '../resources';
 
 /**
  * Management application configuration schemas for CodeIQLabs projects
@@ -20,13 +20,14 @@ import { IdentityCenterSchema } from '../resources/identity-center';
  *
  * Projects can use this directly or extend it for project-specific needs.
  */
-export const ManagementAppConfigSchema = z.object({
-  project: ProjectNameSchema,
-  company: CompanyNameSchema,
-  management: ManagementConfigSchema,
-  organization: OrganizationSchema,
-  identityCenter: IdentityCenterSchema,
-});
+export const ManagementAppConfigSchema = ManifestBaseSchema.merge(
+  z.object({
+    type: z.literal('management'),
+    management: ManagementConfigSchema,
+    organization: OrganizationSchema,
+    identityCenter: IdentityCenterSchema,
+  }),
+);
 
 // Export the type for TypeScript usage
 export type ManagementAppConfig = z.infer<typeof ManagementAppConfigSchema>;
