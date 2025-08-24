@@ -6,6 +6,8 @@ for consistent AWS infrastructure deployment across any organization's projects.
 
 ## 🚀 Key Features
 
+- **🧠 IntelliSense Setup**: Automated IDE configuration for manifest files with autocomplete,
+  validation, and documentation
 - **🏷️ Resource Naming**: Consistent naming patterns across all AWS resources with automatic
   validation
 - **📋 Configuration Validation**: Comprehensive Zod schemas for validating YAML configuration files
@@ -27,6 +29,177 @@ yarn add @codeiqlabs/aws-utils
 # Using pnpm
 pnpm add @codeiqlabs/aws-utils
 ```
+
+**📦 Includes CLI Tools**: The package includes command-line tools for IntelliSense setup and other
+utilities. After installation, you can use `npx @codeiqlabs/aws-utils --help` to see available
+commands.
+
+## 🧠 IntelliSense Setup for Manifest Files
+
+Get **autocomplete, validation, and hover documentation** for your manifest.yaml files in both VS
+Code and IntelliJ IDEA with zero configuration!
+
+### 🚀 Quick Setup
+
+```bash
+# 1. Install the package
+npm install @codeiqlabs/aws-utils
+
+# 2. Set up IntelliSense (one command!)
+npx @codeiqlabs/aws-utils setup-intellisense
+
+# 3. Restart your editor and enjoy full IntelliSense support!
+```
+
+### ✨ What You Get
+
+- **🔍 Autocomplete**: Smart suggestions for all manifest properties
+- **⚡ Real-time Validation**: Instant error highlighting and detailed messages
+- **📖 Hover Documentation**: Comprehensive field descriptions and examples
+- **🎯 Contextual Suggestions**: Properties appear in the correct YAML hierarchy
+- **🔄 Always Up-to-date**: Schemas automatically sync with package updates
+
+### 🎛️ CLI Options
+
+```bash
+# Auto-detect and set up all manifest files
+npx @codeiqlabs/aws-utils setup-intellisense
+
+# Set up specific manifest file
+npx @codeiqlabs/aws-utils setup-intellisense --manifest=src/manifest.yaml
+
+# Force specific manifest type
+npx @codeiqlabs/aws-utils setup-intellisense --type=management
+
+# Quiet mode (minimal output)
+npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
+
+# Show help
+npx @codeiqlabs/aws-utils setup-intellisense --help
+```
+
+### 📝 Manual Schema Reference (Alternative)
+
+If you prefer to add the schema reference manually, add this line to the top of your
+`manifest.yaml`:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json
+
+project: 'MyProject'
+company: 'MyOrganization'
+# ... rest of your manifest
+```
+
+**Available Schema URLs:**
+
+- **Management**:
+  `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json`
+- **Workload**:
+  `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json`
+- **Shared Services**:
+  `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/shared-services-manifest.schema.json`
+
+### 🔧 Editor Support
+
+#### VS Code
+
+- Requires **YAML extension by Red Hat**
+- Automatic configuration via `.vscode/settings.json`
+- Works with both local and HTTP schema references
+
+#### IntelliJ IDEA
+
+- Built-in YAML support with JSON Schema
+- Automatic configuration via `.idea/jsonSchemas.xml`
+- HTTP schema URLs provide the most reliable experience
+
+### 🎯 Supported Manifest Types
+
+The CLI automatically detects your manifest type based on content:
+
+- **Management**: Contains `organization:` and `identityCenter:` sections
+- **Workload**: Contains `deploymentPermissions:` or `environments:` sections
+- **Shared Services**: Contains `sharedServices:` section
+
+### 🌐 HTTP vs Local Schemas
+
+**HTTP Schemas (Recommended):**
+
+- ✅ Always up-to-date
+- ✅ No local file management
+- ✅ Works across all environments
+- ✅ Most reliable in IntelliJ IDEA
+- ⚠️ Requires internet connection
+
+**Local Schemas (Fallback):**
+
+- ✅ Works offline
+- ✅ Faster loading
+- ⚠️ Manual updates required
+- ⚠️ Path resolution issues in some IDEs
+
+### 🔍 Troubleshooting
+
+**IntelliSense not working?**
+
+1. **Restart your editor** after running the setup
+2. **Check the status bar** - should show schema detection
+3. **Verify YAML extension** is installed (VS Code)
+4. **Try manual schema reference** if auto-setup fails
+5. **Check internet connection** for HTTP schemas
+
+**Still having issues?**
+
+- Run with verbose output: `npx @codeiqlabs/aws-utils setup-intellisense --verbose`
+- Check the [GitHub Issues](https://github.com/CodeIQLabs/codeiqlabs-aws-utils/issues) for known
+  problems
+
+### 📋 Example: Management Manifest with IntelliSense
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json
+
+project: 'MyOrganization' # ✅ Autocomplete suggests valid project names
+company: 'MyOrganization' # ✅ Validation ensures required field
+type: 'management' # ✅ Enum validation for manifest types
+
+management: # ✅ Contextual autocomplete for nested properties
+  accountId: '123456789012' # ✅ Pattern validation for 12-digit AWS account ID
+  region: 'us-east-1' # ✅ AWS region format validation
+  environment: 'mgmt' # ✅ Enum validation for environment values
+
+organization: # ✅ Hover shows detailed documentation
+  enabled: true # ✅ Boolean validation
+  rootId: 'r-abc123' # ✅ Organization root ID pattern validation
+  mode: 'adopt' # ✅ Enum: "create" or "adopt"
+
+  organizationalUnits: # ✅ Array validation with item schemas
+    - key: 'production' # ✅ Key format validation
+      name: 'Production' # ✅ Required field validation
+      accounts: # ✅ Nested array validation
+        - key: 'prod-account' # ✅ Account key validation
+          name: 'Production Account'
+          email: 'aws+prod@company.com' # ✅ Email format validation
+          environment: 'prod' # ✅ Environment enum validation
+          purpose: 'Production workloads'
+
+identityCenter: # ✅ Complex object validation
+  enabled: true
+  instanceArn: 'arn:aws:sso:::instance/ssoins-abc123' # ✅ ARN format validation
+  permissionSets: # ✅ Array of permission set objects
+    - name: 'ReadOnlyAccess' # ✅ Required field validation
+      description: 'Read-only access to AWS resources'
+      sessionDuration: 'PT8H' # ✅ ISO 8601 duration format validation
+```
+
+**IntelliSense Features in Action:**
+
+- 🔍 **Type `org`** → Suggests `organization:`
+- 🔍 **Inside `management:`** → Suggests `accountId:`, `region:`, `environment:`
+- ⚡ **Invalid values** → Red underlines with error messages
+- 📖 **Hover over properties** → Shows descriptions and examples
+- 🎯 **Contextual suggestions** → Only relevant properties for each section
 
 ## 🛠️ Build System
 
