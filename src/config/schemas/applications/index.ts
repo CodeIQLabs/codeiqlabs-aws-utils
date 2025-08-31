@@ -20,11 +20,29 @@ export * from './baseline';
 /**
  * Convenience re-exports for commonly used application schemas
  */
-export { ManagementAppConfigSchema } from './management';
+export {
+  ManagementAppConfigSchema,
+  validateManagementAppConfig,
+  safeValidateManagementAppConfig,
+} from './management';
 
-export { WorkloadAppConfigSchema } from './workload';
+export {
+  WorkloadAppConfigSchema,
+  validateWorkloadAppConfig,
+  safeValidateWorkloadAppConfig,
+} from './workload';
 
-export { SharedServicesAppConfigSchema } from './shared-services';
+export {
+  SharedServicesAppConfigSchema,
+  validateSharedServicesAppConfig,
+  safeValidateSharedServicesAppConfig,
+} from './shared-services';
+
+export {
+  BaselineAppConfigSchema,
+  validateBaselineAppConfig,
+  safeValidateBaselineAppConfig,
+} from './baseline';
 
 export { BaselineAppConfigSchema } from './baseline';
 

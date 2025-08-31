@@ -20,7 +20,32 @@
         },
         "type": {
           "type": "string",
-          "const": "shared"
+          "const": "shared-services"
+        },
+        "management": {
+          "type": "object",
+          "properties": {
+            "accountId": {
+              "type": "string",
+              "pattern": "^[0-9]{12}$",
+              "errorMessage": {
+                "pattern": "AWS Account ID must be exactly 12 digits"
+              }
+            },
+            "region": {
+              "type": "string",
+              "pattern": "^[a-z]{2}-[a-z]+-\\d+$",
+              "errorMessage": {
+                "pattern": "Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+            }
+          },
+          "required": ["accountId", "region", "environment"],
+          "additionalProperties": false
         },
         "sharedServices": {
           "type": "object",
@@ -38,6 +63,28 @@
                     "centralLogging": {
                       "type": "boolean",
                       "default": true
+                    },
+                    "crossAccountAccess": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "logRetentionDays": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3653,
+                      "default": 365
+                    },
+                    "enableXRayTracing": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "enableCloudWatchInsights": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "enableContainerInsights": {
+                      "type": "boolean",
+                      "default": true
                     }
                   },
                   "additionalProperties": false
@@ -53,7 +100,201 @@
                           "default": false
                         },
                         "asn": {
-                          "type": "number"
+                          "type": "integer",
+                          "minimum": 64512,
+                          "maximum": 65534
+                        },
+                        "enableDnsSupport": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "enableMulticast": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "defaultRouteTableAssociation": {
+                          "type": "string",
+                          "enum": ["enable", "disable"],
+                          "default": "enable"
+                        },
+                        "defaultRouteTablePropagation": {
+                          "type": "string",
+                          "enum": ["enable", "disable"],
+                          "default": "enable"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "vpcPeering": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "autoAcceptPeering": {
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "directConnect": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": false
+                        },
+                        "virtualInterfaces": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "security": {
+                  "type": "object",
+                  "properties": {
+                    "certificateManager": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountSharing": {
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "secretsManager": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountAccess": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "automaticRotation": {
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "kmsKeySharing": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "defaultKeyPolicy": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "backup": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "crossAccountBackup": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "backupVault": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "kmsKeyId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "defaultBackupPlan": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "retentionDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 36500,
+                          "default": 30
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "devops": {
+                  "type": "object",
+                  "properties": {
+                    "artifactStore": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountAccess": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "s3BucketEncryption": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "versioningEnabled": {
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "containerRegistry": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountAccess": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "imageScanningEnabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "lifecyclePolicyEnabled": {
+                          "type": "boolean",
+                          "default": true
                         }
                       },
                       "additionalProperties": false
@@ -66,9 +307,54 @@
             }
           },
           "additionalProperties": false
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "enableCrossAccountSharing": {
+              "type": "boolean",
+              "default": true
+            },
+            "createDefaultCrossAccountRoles": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableCostAllocationTags": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableResourceAccessManager": {
+              "type": "boolean",
+              "default": true
+            },
+            "defaultTags": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resourcePrefix": {
+              "type": "string"
+            },
+            "enableAutomatedBackup": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableMonitoringAlerts": {
+              "type": "boolean",
+              "default": true
+            },
+            "defaultRetentionDays": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3653,
+              "default": 365
+            }
+          },
+          "additionalProperties": false
         }
       },
-      "required": ["project", "company", "type", "sharedServices"],
+      "required": ["project", "company", "type", "management", "sharedServices"],
       "additionalProperties": false
     }
   },

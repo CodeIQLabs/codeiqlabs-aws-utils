@@ -26,6 +26,11 @@ export {
   loadWorkloadManifest,
   validateConfig,
   expandEnvironmentVariables,
+  // Generic loaders with auto-detection
+  loadManifest,
+  loadManifests,
+  loadManifestsByType,
+  isManifestFile,
   // Convenience alias
   loadConfig as load,
 } from './utils';
