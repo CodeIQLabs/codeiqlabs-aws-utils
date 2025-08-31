@@ -27,7 +27,13 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --legacy-peer-deps || (
+            echo "npm install failed, clearing cache and retrying..."
+            rm -rf node_modules
+            npm cache clean --force
+            npm install --legacy-peer-deps
+          )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
@@ -51,7 +57,13 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --legacy-peer-deps || (
+            echo "npm install failed, clearing cache and retrying..."
+            rm -rf node_modules
+            npm cache clean --force
+            npm install --legacy-peer-deps
+          )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
@@ -80,7 +92,13 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install --legacy-peer-deps || (
+            echo "npm install failed, clearing cache and retrying..."
+            rm -rf node_modules
+            npm cache clean --force
+            npm install --legacy-peer-deps
+          )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
