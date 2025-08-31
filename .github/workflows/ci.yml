@@ -23,16 +23,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
           registry-url: "https://npm.pkg.github.com"
           scope: "@codeiqlabs"
 
       - name: Install dependencies
         run: |
-          npm install || (
-            echo "npm install failed, clearing cache and retrying..."
+          npm ci || (
+            echo "npm ci failed, clearing cache and retrying..."
             rm -rf node_modules
             npm cache clean --force
-            npm install
+            npm ci
           )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -53,16 +54,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
           registry-url: "https://npm.pkg.github.com"
           scope: "@codeiqlabs"
 
       - name: Install dependencies
         run: |
-          npm install || (
-            echo "npm install failed, clearing cache and retrying..."
+          npm ci || (
+            echo "npm ci failed, clearing cache and retrying..."
             rm -rf node_modules
             npm cache clean --force
-            npm install
+            npm ci
           )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -88,16 +90,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
           registry-url: "https://npm.pkg.github.com"
           scope: "@codeiqlabs"
 
       - name: Install dependencies
         run: |
-          npm install || (
-            echo "npm install failed, clearing cache and retrying..."
+          npm ci || (
+            echo "npm ci failed, clearing cache and retrying..."
             rm -rf node_modules
             npm cache clean --force
-            npm install
+            npm ci
           )
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
