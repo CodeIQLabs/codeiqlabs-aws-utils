@@ -36,7 +36,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Build package
-        run: npm run build
+        run: |
+          npm run build || (
+            echo "Build failed, likely due to Rollup optional dependencies bug. Reinstalling..."
+            rm -rf node_modules
+            npm cache clean --force
+            npm ci
+            npm run build
+          )
 
         # Safety: re-run the same gates on main before publishing
       - name: Prettier check
