@@ -17,14 +17,9 @@ export * from './helpers';
 // Only re-export the most commonly used config utilities here to avoid conflicts
 export {
   loadConfig,
-  loadManagementManifest,
-  loadWorkloadManifest,
-  validateConfig,
   expandEnvironmentVariables,
   // Generic loaders with auto-detection
   loadManifest,
-  loadManifests,
-  loadManifestsByType,
   isManifestFile,
 } from './config';
 

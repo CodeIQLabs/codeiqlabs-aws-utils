@@ -44,8 +44,6 @@ export {
   safeValidateBaselineAppConfig,
 } from './baseline';
 
-export { BaselineAppConfigSchema } from './baseline';
-
 /**
  * Convenience re-exports for commonly used application types
  */

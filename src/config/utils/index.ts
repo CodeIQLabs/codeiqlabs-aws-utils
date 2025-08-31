@@ -15,14 +15,9 @@ export * from './loaders';
 export {
   // Generic loaders with auto-detection
   loadManifest,
-  loadManifests,
-  loadManifestsByType,
   isManifestFile,
   // Specific schema loaders (legacy)
   loadConfig,
-  loadManagementManifest,
-  loadWorkloadManifest,
-  validateConfig,
   expandEnvironmentVariables,
 } from './loaders';
 
