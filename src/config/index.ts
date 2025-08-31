@@ -22,10 +22,10 @@ export * from './schemas';
 export {
   // Core loading functions
   loadConfig,
-  loadManagementManifest,
-  loadWorkloadManifest,
-  validateConfig,
   expandEnvironmentVariables,
+  // Generic loaders with auto-detection
+  loadManifest,
+  isManifestFile,
   // Convenience alias
   loadConfig as load,
 } from './utils';

@@ -13,9 +13,21 @@ export * from './loaders';
  * Convenience re-exports for the most commonly used utilities
  */
 export {
+  // Generic loaders with auto-detection
+  loadManifest,
+  isManifestFile,
+  // Specific schema loaders (legacy)
   loadConfig,
-  loadManagementManifest,
-  loadWorkloadManifest,
-  validateConfig,
   expandEnvironmentVariables,
+} from './loaders';
+
+/**
+ * Re-export types for convenience
+ */
+export type {
+  ManifestFormat,
+  ManifestLoadResult,
+  ManifestLoadError,
+  ManifestResult,
+  LoadManifestOptions,
 } from './loaders';

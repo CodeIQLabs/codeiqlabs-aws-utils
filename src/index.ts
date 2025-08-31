@@ -17,10 +17,10 @@ export * from './helpers';
 // Only re-export the most commonly used config utilities here to avoid conflicts
 export {
   loadConfig,
-  loadManagementManifest,
-  loadWorkloadManifest,
-  validateConfig,
   expandEnvironmentVariables,
+  // Generic loaders with auto-detection
+  loadManifest,
+  isManifestFile,
 } from './config';
 
 // Export commonly used configuration types
@@ -30,6 +30,12 @@ export type {
   ManagementConfig,
   OrganizationConfig,
   IdentityCenterConfig,
+  // Generic loader types
+  ManifestFormat,
+  ManifestLoadResult,
+  ManifestLoadError,
+  ManifestResult,
+  LoadManifestOptions,
 } from './config';
 
 // Export commonly used config types for CDK constructs
