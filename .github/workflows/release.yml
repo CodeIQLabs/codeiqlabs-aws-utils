@@ -38,10 +38,8 @@ jobs:
       - name: Build package
         run: |
           npm run build || (
-            echo "Build failed, likely due to Rollup optional dependencies bug. Reinstalling..."
-            rm -rf node_modules
-            npm cache clean --force
-            npm ci
+            echo "Build failed, likely due to Rollup optional dependencies bug. Installing missing package..."
+            npm install @rollup/rollup-linux-x64-gnu --no-save --ignore-scripts || true
             npm run build
           )
 
