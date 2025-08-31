@@ -51,5 +51,3 @@ tmp/
 temp/
 
 *.js
-
-package-lock.json
