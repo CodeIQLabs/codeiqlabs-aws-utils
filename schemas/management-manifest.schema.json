@@ -630,6 +630,59 @@
           },
           "required": ["enabled", "instanceArn", "permissionSets", "assignments"],
           "additionalProperties": false
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "enableAllAwsServices": {
+              "type": "boolean",
+              "default": true
+            },
+            "autoCreateCrossAccountRoles": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableOrganizationCloudTrail": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableOrganizationConfig": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableOrganizationGuardDuty": {
+              "type": "boolean",
+              "default": true
+            },
+            "enableOrganizationSecurityHub": {
+              "type": "boolean",
+              "default": true
+            },
+            "defaultTags": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resourcePrefix": {
+              "type": "string"
+            },
+            "requireMfaForIdentityCenter": {
+              "type": "boolean",
+              "default": true
+            },
+            "defaultSessionDuration": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "default": 8
+            },
+            "enableTrustedAccess": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
         }
       },
       "required": ["project", "company", "type", "management", "organization", "identityCenter"],

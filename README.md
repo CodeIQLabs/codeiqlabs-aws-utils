@@ -95,6 +95,8 @@ company: 'MyOrganization'
 
 - **Management**:
   `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json`
+- **Baseline**:
+  `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/baseline-manifest.schema.json`
 - **Workload**:
   `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json`
 - **Shared Services**:
@@ -301,6 +303,281 @@ applyStandardTags(stack, {
     CostCenter: 'Engineering',
   },
 });
+```
+
+## 📋 Manifest Schemas & Generic Configuration Loader
+
+CodeIQLabs AWS Utils provides comprehensive manifest schemas for all AWS account types and a
+powerful generic configuration loader with automatic type detection.
+
+### 🎯 Supported Manifest Types
+
+The library supports four distinct manifest types, each designed for specific AWS account roles:
+
+| Type                  | Purpose                    | Use Case                                                       |
+| --------------------- | -------------------------- | -------------------------------------------------------------- |
+| **`management`**      | Organizational governance  | AWS Organizations, Identity Center, cross-account roles        |
+| **`baseline`**        | Account foundations        | VPC, security groups, compliance services (CloudTrail, Config) |
+| **`shared-services`** | Centralized services       | Monitoring, networking, backup, artifact storage               |
+| **`workload`**        | Application infrastructure | Multi-environment apps, CI/CD, scaling configurations          |
+
+### 🚀 Generic Configuration Loader
+
+The generic loader automatically detects manifest types and provides type-safe validation:
+
+```typescript
+import { loadManifest, loadManifests, loadManifestsByType } from '@codeiqlabs/aws-utils';
+
+// Load any manifest file with auto-detection
+const result = await loadManifest('./manifest.yaml');
+if (result.success) {
+  console.log(`Loaded ${result.type} manifest`);
+  // result.data is properly typed based on detected type
+  if (result.type === 'management') {
+    console.log(`Organization: ${result.data.organization.name}`);
+  }
+}
+
+// Load multiple manifests from a directory
+const results = await loadManifests('./config/');
+console.log(`Found ${results.length} manifest files`);
+
+// Load and organize manifests by type
+const organized = await loadManifestsByType('./config/');
+console.log(`Management: ${organized.management.length}`);
+console.log(`Workload: ${organized.workload.length}`);
+console.log(`Errors: ${organized.errors.length}`);
+```
+
+### 📝 Manifest Examples
+
+#### Management Manifest
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json
+
+project: 'MyOrganization'
+company: 'MyOrganization'
+type: 'management'
+
+management:
+  accountId: '${MANAGEMENT_ACCOUNT_ID}'
+  region: 'us-east-1'
+  environment: 'mgmt'
+
+organization:
+  enabled: true
+  rootId: '${ORG_ROOT_ID}'
+  mode: 'adopt'
+  organizationalUnits:
+    - key: 'production'
+      name: 'Production'
+      accounts:
+        - key: 'prod-account'
+          name: 'Production Account'
+          email: 'aws+prod@company.com'
+          environment: 'prod'
+          purpose: 'Production workloads'
+          accountId: '123456789012'
+
+identityCenter:
+  enabled: true
+  instanceArn: '${SSO_INSTANCE_ARN}'
+  permissionSets:
+    - name: 'ReadOnlyAccess'
+      description: 'Read-only access'
+      sessionDuration: 'PT8H'
+      managedPolicies: ['arn:aws:iam::aws:policy/ReadOnlyAccess']
+
+options:
+  enableOrganizationCloudTrail: true
+  enableOrganizationConfig: true
+  requireMfaForIdentityCenter: true
+```
+
+#### Baseline Manifest
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/baseline-manifest.schema.json
+
+project: 'MyProject'
+company: 'MyOrganization'
+type: 'baseline'
+
+management:
+  accountId: '${MANAGEMENT_ACCOUNT_ID}'
+  region: 'us-east-1'
+  environment: 'mgmt'
+
+networking:
+  mode: 'create'
+  vpc:
+    name: 'main-vpc'
+    cidr: '10.0.0.0/16'
+    region: 'us-east-1'
+    subnets:
+      - name: 'public-subnet-1'
+        type: 'public'
+        cidr: '10.0.1.0/24'
+        availabilityZone: 'us-east-1a'
+      - name: 'private-subnet-1'
+        type: 'private'
+        cidr: '10.0.2.0/24'
+        availabilityZone: 'us-east-1a'
+
+security:
+  securityGroups:
+    - name: 'web-sg'
+      description: 'Security group for web servers'
+      rules:
+        - type: 'ingress'
+          protocol: 'tcp'
+          port: 443
+          source:
+            type: 'cidr'
+            cidr: '0.0.0.0/0'
+
+compliance:
+  cloudTrail:
+    name: 'organization-trail'
+    enabled: true
+    s3Config:
+      bucketName: 'cloudtrail-logs-bucket'
+      isMultiRegionTrail: true
+  guardDuty:
+    enabled: true
+  securityHub:
+    enabled: true
+```
+
+#### Workload Manifest
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json
+
+project: 'MyApp'
+company: 'MyOrganization'
+type: 'workload'
+
+management:
+  accountId: '${MANAGEMENT_ACCOUNT_ID}'
+  region: 'us-east-1'
+  environment: 'mgmt'
+
+environments:
+  nprd:
+    accountId: '${NPRD_ACCOUNT_ID}'
+    region: 'us-east-1'
+    environment: 'nprd'
+    config:
+      scaling:
+        minCapacity: 1
+        maxCapacity: 5
+      monitoring:
+        enableDetailedMonitoring: true
+        logLevel: 'DEBUG'
+  prod:
+    accountId: '${PROD_ACCOUNT_ID}'
+    region: 'us-east-1'
+    environment: 'prod'
+    config:
+      scaling:
+        minCapacity: 2
+        maxCapacity: 20
+      monitoring:
+        enableDetailedMonitoring: true
+        logLevel: 'INFO'
+
+applications:
+  - name: 'web-api'
+    description: 'Main web API'
+    runtime:
+      type: 'container'
+      platform: 'linux/amd64'
+
+options:
+  enableBlueGreenDeployment: true
+  enableAutomatedTesting: true
+```
+
+#### Shared Services Manifest
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/shared-services-manifest.schema.json
+
+project: 'SharedServices'
+company: 'MyOrganization'
+type: 'shared-services'
+
+management:
+  accountId: '${MANAGEMENT_ACCOUNT_ID}'
+  region: 'us-east-1'
+  environment: 'mgmt'
+
+sharedServices:
+  services:
+    monitoring:
+      enabled: true
+      centralLogging: true
+      crossAccountAccess: true
+    networking:
+      transitGateway:
+        enabled: true
+        enableDnsSupport: true
+    security:
+      certificateManager:
+        enabled: true
+        crossAccountSharing: true
+    backup:
+      enabled: true
+      crossAccountBackup: true
+
+options:
+  enableCrossAccountSharing: true
+  enableResourceAccessManager: true
+```
+
+### 🔧 Advanced Loader Options
+
+```typescript
+import { loadManifest, LoadManifestOptions } from '@codeiqlabs/aws-utils';
+
+const options: LoadManifestOptions = {
+  expandEnvVars: true, // Expand ${VAR_NAME} syntax
+  envVars: {
+    // Custom environment variables
+    CUSTOM_VAR: 'custom-value',
+  },
+  validate: true, // Schema validation (recommended)
+};
+
+const result = await loadManifest('./manifest.yaml', options);
+```
+
+### 🎯 Type-Safe Processing
+
+```typescript
+import { loadManifestsByType } from '@codeiqlabs/aws-utils';
+
+const manifests = await loadManifestsByType('./config/');
+
+// Process each type with full type safety
+for (const mgmt of manifests.management) {
+  console.log(`Organization: ${mgmt.data.organization.name}`);
+  console.log(`Identity Center: ${mgmt.data.identityCenter.enabled}`);
+}
+
+for (const workload of manifests.workload) {
+  console.log(`Environments: ${Object.keys(workload.data.environments)}`);
+  for (const app of workload.data.applications || []) {
+    console.log(`Application: ${app.name} (${app.runtime?.type})`);
+  }
+}
+
+// Handle errors gracefully
+for (const error of manifests.errors) {
+  console.error(`Failed to load ${error.filePath}: ${error.error}`);
+}
 ```
 
 ## 🏗️ Module Formats
