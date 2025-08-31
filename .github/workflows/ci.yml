@@ -28,23 +28,12 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: |
-          npm ci || (
-            echo "npm ci failed, clearing cache and retrying..."
-            rm -rf node_modules
-            npm cache clean --force
-            npm ci
-          )
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Build (so Prettier config exists)
-        run: |
-          npm run build || (
-            echo "Build failed, likely due to Rollup optional dependencies bug. Installing missing package..."
-            npm install @rollup/rollup-linux-x64-gnu --no-save --ignore-scripts || true
-            npm run build
-          )
+        run: npm run build
 
       - name: Check formatting
         run: npm run format:check
@@ -64,23 +53,12 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: |
-          npm ci || (
-            echo "npm ci failed, clearing cache and retrying..."
-            rm -rf node_modules
-            npm cache clean --force
-            npm ci
-          )
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Build
-        run: |
-          npm run build || (
-            echo "Build failed, likely due to Rollup optional dependencies bug. Installing missing package..."
-            npm install @rollup/rollup-linux-x64-gnu --no-save --ignore-scripts || true
-            npm run build
-          )
+        run: npm run build
 
       - name: Test All
         run: npm run test:all
@@ -105,13 +83,7 @@ jobs:
           scope: "@codeiqlabs"
 
       - name: Install dependencies
-        run: |
-          npm ci || (
-            echo "npm ci failed, clearing cache and retrying..."
-            rm -rf node_modules
-            npm cache clean --force
-            npm ci
-          )
+        run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
 
