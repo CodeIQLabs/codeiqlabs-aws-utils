@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ManifestBaseSchema } from '../base';
-import { ManagementConfigSchema } from '../resources';
 
 /**
  * Shared services application configuration schema for CodeIQLabs AWS projects
@@ -156,78 +155,70 @@ export const SharedServicesConfigSchema = z.object({
  * Combines all shared services components into a single
  * configuration that can be deployed to establish centralized services.
  */
-export const SharedServicesAppConfigSchema = ManifestBaseSchema.merge(
-  z.object({
-    /**
-     * Application type identifier
-     */
-    type: z.literal('shared-services'),
+export const SharedServicesAppConfigSchema = ManifestBaseSchema.extend({
+  /**
+   * Application type identifier
+   */
+  type: z.literal('shared-services'),
 
-    /**
-     * Reference to management account configuration
-     * Used for cross-account role assumptions and organizational context
-     */
-    management: ManagementConfigSchema,
+  /**
+   * Shared services configuration
+   * Defines all centralized services and their configurations
+   */
+  sharedServices: SharedServicesConfigSchema,
 
-    /**
-     * Shared services configuration
-     * Defines all centralized services and their configurations
-     */
-    sharedServices: SharedServicesConfigSchema,
+  /**
+   * Additional shared services configuration options
+   */
+  options: z
+    .object({
+      /**
+       * Whether to enable cross-account resource sharing by default
+       */
+      enableCrossAccountSharing: z.boolean().default(true),
 
-    /**
-     * Additional shared services configuration options
-     */
-    options: z
-      .object({
-        /**
-         * Whether to enable cross-account resource sharing by default
-         */
-        enableCrossAccountSharing: z.boolean().default(true),
+      /**
+       * Whether to create default IAM roles for cross-account access
+       */
+      createDefaultCrossAccountRoles: z.boolean().default(true),
 
-        /**
-         * Whether to create default IAM roles for cross-account access
-         */
-        createDefaultCrossAccountRoles: z.boolean().default(true),
+      /**
+       * Whether to enable cost allocation tags for shared resources
+       */
+      enableCostAllocationTags: z.boolean().default(true),
 
-        /**
-         * Whether to enable cost allocation tags for shared resources
-         */
-        enableCostAllocationTags: z.boolean().default(true),
+      /**
+       * Whether to enable resource sharing via AWS Resource Access Manager
+       */
+      enableResourceAccessManager: z.boolean().default(true),
 
-        /**
-         * Whether to enable resource sharing via AWS Resource Access Manager
-         */
-        enableResourceAccessManager: z.boolean().default(true),
+      /**
+       * Default tags to apply to all shared services resources
+       */
+      defaultTags: z.record(z.string()).optional(),
 
-        /**
-         * Default tags to apply to all shared services resources
-         */
-        defaultTags: z.record(z.string()).optional(),
+      /**
+       * Resource naming prefix for shared services resources
+       */
+      resourcePrefix: z.string().optional(),
 
-        /**
-         * Resource naming prefix for shared services resources
-         */
-        resourcePrefix: z.string().optional(),
+      /**
+       * Whether to enable automated backup for shared services
+       */
+      enableAutomatedBackup: z.boolean().default(true),
 
-        /**
-         * Whether to enable automated backup for shared services
-         */
-        enableAutomatedBackup: z.boolean().default(true),
+      /**
+       * Whether to enable monitoring and alerting for shared services
+       */
+      enableMonitoringAlerts: z.boolean().default(true),
 
-        /**
-         * Whether to enable monitoring and alerting for shared services
-         */
-        enableMonitoringAlerts: z.boolean().default(true),
-
-        /**
-         * Default retention period for logs and backups (in days)
-         */
-        defaultRetentionDays: z.number().int().min(1).max(3653).default(365),
-      })
-      .optional(),
-  }),
-);
+      /**
+       * Default retention period for logs and backups (in days)
+       */
+      defaultRetentionDays: z.number().int().min(1).max(3653).default(365),
+    })
+    .optional(),
+});
 
 /**
  * Type inference for the shared services application configuration

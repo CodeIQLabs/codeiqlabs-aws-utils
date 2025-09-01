@@ -45,7 +45,12 @@ export {
   TagsSchema,
 } from './common';
 
-export { ManifestCoreSchema, ManifestContextSchema, ManifestBaseSchema } from './manifest-base';
+export {
+  ManifestCoreSchema,
+  ManifestContextSchema,
+  ManagementRefSchema,
+  ManifestBaseSchema,
+} from './manifest-base';
 
 /**
  * Convenience re-exports for the most commonly used base types
@@ -75,4 +80,4 @@ export type {
   Tags,
 } from './common';
 
-export type { ManifestCore, ManifestContext, ManifestBase } from './manifest-base';
+export type { ManifestCore, ManifestContext, ManagementRef, ManifestBase } from './manifest-base';

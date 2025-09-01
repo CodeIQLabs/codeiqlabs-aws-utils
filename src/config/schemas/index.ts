@@ -36,6 +36,7 @@ export {
   TagsSchema,
   ManifestCoreSchema,
   ManifestContextSchema,
+  ManagementRefSchema,
   ManifestBaseSchema,
 } from './base';
 
@@ -88,6 +89,23 @@ export {
   BaselineAppConfigSchema,
 } from './applications';
 
+// Import for discriminated union
+import { z } from 'zod';
+import {
+  ManagementAppConfigSchema,
+  WorkloadAppConfigSchema,
+  SharedServicesAppConfigSchema,
+  BaselineAppConfigSchema,
+} from './applications';
+
+// Discriminated union for unified schema generation
+export const ManifestSchema = z.discriminatedUnion('type', [
+  ManagementAppConfigSchema,
+  SharedServicesAppConfigSchema,
+  WorkloadAppConfigSchema,
+  BaselineAppConfigSchema,
+]);
+
 /**
  * Convenience re-exports for commonly used types
  */
@@ -112,6 +130,7 @@ export type {
   Tags,
   ManifestCore,
   ManifestContext,
+  ManagementRef,
   ManifestBase,
 } from './base';
 
@@ -166,3 +185,6 @@ export type {
   SharedServicesAppConfig,
   BaselineAppConfig,
 } from './applications';
+
+// Discriminated union type
+export type Manifest = z.infer<typeof ManifestSchema>;

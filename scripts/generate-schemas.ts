@@ -12,7 +12,6 @@
 import { writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 // ES module compatibility
 const __filename = fileURLToPath(import.meta.url);
@@ -55,53 +54,55 @@ const schemas = [
 ];
 
 /**
- * Generate JSON schemas
+ * Generate JSON schema shims that reference the unified schema
  */
 function generateSchemas() {
-  console.log('🔧 Generating JSON schemas for CodeIQLabs manifest types...');
+  console.log('🔧 Generating JSON schema shims for CodeIQLabs manifest types...');
 
   // Create schemas directory
   const schemasDir = join(__dirname, '..', 'schemas');
   mkdirSync(schemasDir, { recursive: true });
 
-  for (const { name, schema, title, description } of schemas) {
-    console.log(`📋 Generating ${name}.schema.json...`);
+  // Map schema names to their unified schema definitions
+  const defMap: Record<string, string> = {
+    'management-manifest': 'ManagementManifest',
+    'workload-manifest': 'WorkloadManifest',
+    'shared-services-manifest': 'SharedServicesManifest',
+    'baseline-manifest': 'BaselineManifest',
+  };
+
+  for (const { name, title, description } of schemas) {
+    console.log(`📋 Generating ${name}.schema.json shim...`);
 
     try {
-      // Generate JSON schema
-      const jsonSchema = zodToJsonSchema(schema, {
-        name: title,
-        description,
-        $refStrategy: 'none', // Inline all references for better IDE support
-      });
-
-      // Add additional metadata
-      const enhancedSchema = {
-        ...jsonSchema,
-        $schema: 'http://json-schema.org/draft-07/schema#',
+      const shimSchema = {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
         $id: `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/${name}.schema.json`,
-        title,
-        description,
-        examples: getExampleForSchema(name),
+        title: title,
+        description: description,
+        $ref: `https://schemas.codeiqlabs.dev/aws/manifest.schema.json#/$defs/${defMap[name]}`,
       };
 
-      // Write to file
+      // Write schema shim file
       const filePath = join(schemasDir, `${name}.schema.json`);
-      writeFileSync(filePath, JSON.stringify(enhancedSchema, null, 2));
+      writeFileSync(filePath, JSON.stringify(shimSchema, null, 2));
 
-      console.log(`✅ Generated ${filePath}`);
+      console.log(`✅ Generated ${filePath} shim`);
     } catch (error) {
-      console.error(`❌ Failed to generate ${name}.schema.json:`, error);
+      console.error(`❌ Failed to generate shim for ${name}:`, error);
       process.exit(1);
     }
   }
 
-  console.log('\n🎉 All JSON schemas generated successfully!');
-  console.log('\n📁 Generated files:');
+  console.log('\n🎉 All JSON schema shims generated successfully!');
+  console.log('\n📁 Generated shim files:');
   schemas.forEach(({ name }) => {
     console.log(`   schemas/${name}.schema.json`);
   });
 
+  console.log(
+    '\n📝 Note: The unified schema is maintained manually in schemas/manifest.schema.json',
+  );
   console.log('\n🔗 Schema URLs for YAML language server:');
   schemas.forEach(({ name, title }) => {
     console.log(`   ${title}:`);
@@ -110,94 +111,6 @@ function generateSchemas() {
     );
     console.log('');
   });
-}
-
-/**
- * Get example manifest for each schema type
- */
-function getExampleForSchema(schemaName: string): any[] {
-  const baseExample = {
-    project: 'MyProject',
-    company: 'MyOrganization',
-    management: {
-      accountId: '${MANAGEMENT_ACCOUNT_ID}',
-      region: 'us-east-1',
-      environment: 'mgmt',
-    },
-  };
-
-  switch (schemaName) {
-    case 'management-manifest':
-      return [
-        {
-          ...baseExample,
-          type: 'management',
-          organization: {
-            enabled: true,
-            rootId: '${ORG_ROOT_ID}',
-            mode: 'adopt',
-          },
-          identityCenter: {
-            enabled: true,
-            instanceArn: '${SSO_INSTANCE_ARN}',
-          },
-        },
-      ];
-
-    case 'baseline-manifest':
-      return [
-        {
-          ...baseExample,
-          type: 'baseline',
-          networking: {
-            mode: 'create',
-            vpc: {
-              name: 'main-vpc',
-              cidr: '10.0.0.0/16',
-              region: 'us-east-1',
-            },
-          },
-        },
-      ];
-
-    case 'workload-manifest':
-      return [
-        {
-          ...baseExample,
-          type: 'workload',
-          environments: {
-            nprd: {
-              accountId: '${NPRD_ACCOUNT_ID}',
-              region: 'us-east-1',
-              environment: 'nprd',
-            },
-            prod: {
-              accountId: '${PROD_ACCOUNT_ID}',
-              region: 'us-east-1',
-              environment: 'prod',
-            },
-          },
-        },
-      ];
-
-    case 'shared-services-manifest':
-      return [
-        {
-          ...baseExample,
-          type: 'shared-services',
-          sharedServices: {
-            services: {
-              monitoring: {
-                enabled: true,
-              },
-            },
-          },
-        },
-      ];
-
-    default:
-      return [baseExample];
-  }
 }
 
 // Run the script

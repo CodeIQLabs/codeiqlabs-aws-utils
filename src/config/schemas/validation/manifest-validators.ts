@@ -6,23 +6,7 @@
  */
 
 import { z } from 'zod';
-import {
-  ManagementAppConfigSchema,
-  WorkloadAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  BaselineAppConfigSchema,
-} from '../applications';
-
-/**
- * Union type for all supported manifest types
- * Uses discriminated union on the 'type' field for automatic type detection
- */
-export const AnyManifestSchema = z.discriminatedUnion('type', [
-  ManagementAppConfigSchema,
-  WorkloadAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  BaselineAppConfigSchema,
-]);
+import { ManifestSchema } from '../index';
 
 /**
  * Validates any manifest file and returns the appropriate typed result
@@ -33,18 +17,13 @@ export const AnyManifestSchema = z.discriminatedUnion('type', [
 export function validateManifest(data: unknown):
   | {
       success: true;
-      data: z.infer<typeof AnyManifestSchema>;
+      data: z.infer<typeof ManifestSchema>;
       type: 'management' | 'workload' | 'shared-services' | 'baseline';
     }
   | { success: false; error: z.ZodError } {
-  const result = AnyManifestSchema.safeParse(data);
+  const result = ManifestSchema.safeParse(data);
   if (result.success) {
     return { success: true, data: result.data, type: result.data.type };
   }
   return { success: false, error: result.error };
 }
-
-/**
- * Type alias for any supported manifest configuration
- */
-export type AnyManifestConfig = z.infer<typeof AnyManifestSchema>;
