@@ -2,10 +2,8 @@ import { readFileSync } from 'fs';
 import { extname } from 'path';
 import { load } from 'js-yaml';
 import type { z } from 'zod';
-import {
-  validateManifest,
-  type AnyManifestConfig,
-} from '../schemas/validation/manifest-validators';
+import { validateManifest } from '../schemas/validation/manifest-validators';
+import type { Manifest } from '../schemas';
 
 /**
  * Generic configuration loader with auto-detection and comprehensive format support
@@ -30,7 +28,7 @@ export type ManifestFormat = 'yaml' | 'yml' | 'json';
  */
 export interface ManifestLoadResult {
   success: true;
-  data: AnyManifestConfig;
+  data: Manifest;
   type: 'management' | 'workload' | 'shared-services' | 'baseline';
   filePath: string;
   format: ManifestFormat;
@@ -233,7 +231,7 @@ export async function loadManifest(
     // Return unvalidated data (not recommended for production)
     return {
       success: true,
-      data: data as AnyManifestConfig,
+      data: data as Manifest,
       type: (data as any).type,
       filePath,
       format,

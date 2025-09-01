@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ManagementConfigSchema } from '../resources';
 import { DeploymentPermissionsSchema } from '../resources';
 import {
   AwsAccountIdSchema,
@@ -146,100 +145,92 @@ export const ApplicationConfigSchema = z.object({
  * Combines all application-specific components into a single
  * configuration that can be deployed to establish application infrastructure.
  */
-export const WorkloadAppConfigSchema = ManifestBaseSchema.merge(
-  z.object({
-    /**
-     * Application type identifier
-     */
-    type: z.literal('workload'),
+export const WorkloadAppConfigSchema = ManifestBaseSchema.extend({
+  /**
+   * Application type identifier
+   */
+  type: z.literal('workload'),
 
-    /**
-     * Environment-specific deployment configurations
-     * Maps environment names to their specific configurations
-     */
-    environments: z.record(WorkloadEnvironmentSchema),
+  /**
+   * Environment-specific deployment configurations
+   * Maps environment names to their specific configurations
+   */
+  environments: z.record(WorkloadEnvironmentSchema),
 
-    /**
-     * Reference to management account configuration
-     * Used for cross-account role assumptions and organizational context
-     */
-    management: ManagementConfigSchema,
+  /**
+   * Deployment permissions and GitHub Actions configuration
+   * Defines how the application can be deployed across environments using GitHub Actions
+   */
+  deploymentPermissions: DeploymentPermissionsSchema.optional(),
 
-    /**
-     * Deployment permissions and GitHub Actions configuration
-     * Defines how the application can be deployed across environments using GitHub Actions
-     */
-    deploymentPermissions: DeploymentPermissionsSchema.optional(),
+  /**
+   * Application-specific configuration
+   * Defines the applications and services to be deployed
+   */
+  applications: z.array(ApplicationConfigSchema).optional(),
 
-    /**
-     * Application-specific configuration
-     * Defines the applications and services to be deployed
-     */
-    applications: z.array(ApplicationConfigSchema).optional(),
+  /**
+   * Additional workload configuration options
+   */
+  options: z
+    .object({
+      /**
+       * Whether to enable blue-green deployments
+       */
+      enableBlueGreenDeployment: z.boolean().default(false),
 
-    /**
-     * Additional workload configuration options
-     */
-    options: z
-      .object({
-        /**
-         * Whether to enable blue-green deployments
-         */
-        enableBlueGreenDeployment: z.boolean().default(false),
+      /**
+       * Whether to enable canary deployments
+       */
+      enableCanaryDeployment: z.boolean().default(false),
 
-        /**
-         * Whether to enable canary deployments
-         */
-        enableCanaryDeployment: z.boolean().default(false),
+      /**
+       * Whether to enable automatic rollback on deployment failure
+       */
+      enableAutoRollback: z.boolean().default(true),
 
-        /**
-         * Whether to enable automatic rollback on deployment failure
-         */
-        enableAutoRollback: z.boolean().default(true),
+      /**
+       * Whether to enable cross-region disaster recovery
+       */
+      enableDisasterRecovery: z.boolean().default(false),
 
-        /**
-         * Whether to enable cross-region disaster recovery
-         */
-        enableDisasterRecovery: z.boolean().default(false),
+      /**
+       * Whether to enable automated testing in GitHub Actions
+       */
+      enableAutomatedTesting: z.boolean().default(true),
 
-        /**
-         * Whether to enable automated testing in GitHub Actions
-         */
-        enableAutomatedTesting: z.boolean().default(true),
+      /**
+       * Whether to enable security scanning in GitHub Actions
+       */
+      enableSecurityScanning: z.boolean().default(true),
 
-        /**
-         * Whether to enable security scanning in GitHub Actions
-         */
-        enableSecurityScanning: z.boolean().default(true),
+      /**
+       * Default tags to apply to all workload resources
+       */
+      defaultTags: z.record(z.string()).optional(),
 
-        /**
-         * Default tags to apply to all workload resources
-         */
-        defaultTags: z.record(z.string()).optional(),
+      /**
+       * Resource naming prefix for workload resources
+       */
+      resourcePrefix: z.string().optional(),
 
-        /**
-         * Resource naming prefix for workload resources
-         */
-        resourcePrefix: z.string().optional(),
+      /**
+       * Whether to enable cost optimization features
+       */
+      enableCostOptimization: z.boolean().default(true),
 
-        /**
-         * Whether to enable cost optimization features
-         */
-        enableCostOptimization: z.boolean().default(true),
+      /**
+       * Whether to enable performance monitoring and optimization
+       */
+      enablePerformanceMonitoring: z.boolean().default(true),
 
-        /**
-         * Whether to enable performance monitoring and optimization
-         */
-        enablePerformanceMonitoring: z.boolean().default(true),
-
-        /**
-         * Default environment promotion order
-         */
-        promotionOrder: z.array(z.string()).optional(),
-      })
-      .optional(),
-  }),
-);
+      /**
+       * Default environment promotion order
+       */
+      promotionOrder: z.array(z.string()).optional(),
+    })
+    .optional(),
+});
 
 /**
  * Type inference for the workload application configuration

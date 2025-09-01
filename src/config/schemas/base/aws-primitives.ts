@@ -8,13 +8,13 @@ import { z } from 'zod';
  */
 
 /**
- * AWS Region validation - basic format check for AWS region names
+ * AWS Region validation - matches enhanced JSON Schema pattern
  */
 export const AwsRegionSchema = z
   .string()
   .regex(
-    /^[a-z]{2}-[a-z]+-\d+$/,
-    'Invalid AWS region format (expected: us-east-1, eu-west-1, etc.)',
+    /^[a-z]{2}-[a-z]+-\d{1,2}$/,
+    'AWS Region must follow the format: {region}-{location}-{number} (e.g., "us-east-1")',
   );
 
 /**

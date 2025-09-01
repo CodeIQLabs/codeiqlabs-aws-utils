@@ -1,25 +1,3255 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.codeiqlabs.com/manifest.json",
-  "title": "CodeIQLabs Manifest",
-  "description": "Auto-detecting schema for CodeIQLabs manifest files",
-  "type": "object",
-  "oneOf": [
-    {
-      "$ref": "./management-manifest.schema.json",
-      "description": "Schema for CodeIQLabs management account manifest files"
-    },
-    {
-      "$ref": "./workload-manifest.schema.json",
-      "description": "Schema for CodeIQLabs workload account manifest files"
-    },
-    {
-      "$ref": "./shared-services-manifest.schema.json",
-      "description": "Schema for CodeIQLabs shared services account manifest files"
-    },
-    {
-      "$ref": "./baseline-manifest.schema.json",
-      "description": "Schema for CodeIQLabs baseline account manifest files"
+  "$id": "https://schemas.codeiqlabs.dev/aws/manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CodeIQLabs AWS Manifest (Unified)",
+  "description": "Unified schema for all CodeIQLabs manifest types with discriminated union. Provides strict validation with enhanced error messages for better developer experience.",
+  "$ref": "definitions/CodeIQLabsAwsManifest",
+  "definitions": {
+    "CodeIQLabsAwsManifest": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "project": {
+              "type": "string",
+              "minLength": 1
+            },
+            "company": {
+              "type": "string",
+              "minLength": 1
+            },
+            "management": {
+              "type": "object",
+              "properties": {
+                "accountId": {
+                  "type": "string",
+                  "pattern": "^[0-9]{12}$"
+                },
+                "region": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}-[a-z]+-\\d{1,2}$"
+                },
+                "environment": {
+                  "type": "string",
+                  "const": "mgmt"
+                }
+              },
+              "required": ["accountId", "region", "environment"],
+              "additionalProperties": false,
+              "errorMessage": {
+                "required": {
+                  "accountId": "Missing required property: accountId",
+                  "region": "Missing required property: region",
+                  "environment": "Missing required property: environment"
+                }
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "management"
+            },
+            "organization": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "rootId": {
+                  "type": "string",
+                  "pattern": "^r-[a-z0-9]{4,32}$"
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": ["create", "adopt"],
+                  "default": "create"
+                },
+                "featureSet": {
+                  "type": "string",
+                  "enum": ["ALL", "CONSOLIDATED_BILLING"],
+                  "default": "ALL"
+                },
+                "organizationalUnits": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9_-]+$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[a-zA-Z0-9\\s_-]+$",
+                        "minLength": 1
+                      },
+                      "accounts": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "key": {
+                              "$ref": "4/key"
+                            },
+                            "name": {
+                              "$ref": "4/name"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            },
+                            "environment": {
+                              "type": "string",
+                              "enum": ["nprd", "pprd", "prod", "mgmt", "shrd"]
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500
+                            },
+                            "tags": {
+                              "type": "object",
+                              "additionalProperties": {
+                                "type": "string"
+                              }
+                            },
+                            "accountId": {
+                              "$ref": "9/management/properties/accountId"
+                            }
+                          },
+                          "required": ["key", "name", "email", "environment", "purpose"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "key": "Missing required property: key",
+                              "name": "Missing required property: name",
+                              "email": "Missing required property: email",
+                              "environment": "Missing required property: environment",
+                              "purpose": "Missing required property: purpose"
+                            }
+                          }
+                        }
+                      },
+                      "ouId": {
+                        "type": "string",
+                        "pattern": "^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$"
+                      },
+                      "parentOuId": {
+                        "$ref": "1/ouId"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["key", "name", "accounts"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "key": "Missing required property: key",
+                        "name": "Missing required property: name",
+                        "accounts": "Missing required property: accounts"
+                      }
+                    }
+                  }
+                },
+                "serviceControlPolicies": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "4/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "policyDocument": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        ]
+                      },
+                      "targetType": {
+                        "type": "string",
+                        "enum": ["ROOT", "OU", "ACCOUNT"]
+                      },
+                      "targetIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "tags": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": ["name", "policyDocument", "targetType", "targetIds"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "policyDocument": "Missing required property: policyDocument",
+                        "targetType": "Missing required property: targetType",
+                        "targetIds": "Missing required property: targetIds"
+                      }
+                    }
+                  }
+                },
+                "enabledPolicyTypes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "SERVICE_CONTROL_POLICY",
+                      "TAG_POLICY",
+                      "BACKUP_POLICY",
+                      "AISERVICES_OPT_OUT_POLICY"
+                    ]
+                  },
+                  "default": ["SERVICE_CONTROL_POLICY"]
+                },
+                "tags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": ["enabled", "rootId", "organizationalUnits"],
+              "additionalProperties": false,
+              "errorMessage": {
+                "required": {
+                  "enabled": "Missing required property: enabled",
+                  "rootId": "Missing required property: rootId",
+                  "organizationalUnits": "Missing required property: organizationalUnits"
+                }
+              }
+            },
+            "identityCenter": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "$ref": "3/organization/properties/enabled"
+                },
+                "instanceArn": {
+                  "type": "string",
+                  "pattern": "^arn:aws:sso:::instance\\/ssoins-[a-z0-9]{16}$"
+                },
+                "identitySource": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": ["INTERNAL", "EXTERNAL"]
+                    },
+                    "externalProvider": {
+                      "type": "object",
+                      "properties": {
+                        "samlMetadataDocument": {
+                          "type": "string"
+                        },
+                        "samlMetadataUrl": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "attributeMapping": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["type"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "type": "Missing required property: type"
+                    }
+                  }
+                },
+                "permissionSets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                      },
+                      "sessionDuration": {
+                        "type": "string",
+                        "pattern": "^P(?:(\\d+)Y)?(?:(\\d+)M)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?$"
+                      },
+                      "managedPolicies": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^arn:aws:iam::(aws|\\d{12}):policy\\/[a-zA-Z0-9+=,.@_/-]+$"
+                        }
+                      },
+                      "inlinePolicy": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": {}
+                          }
+                        ]
+                      },
+                      "customerManagedPolicies": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "$ref": "9/organization/properties/organizationalUnits/items/properties/name"
+                            },
+                            "path": {
+                              "type": "string",
+                              "default": "/"
+                            }
+                          },
+                          "required": ["name"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "name": "Missing required property: name"
+                            }
+                          }
+                        }
+                      },
+                      "permissionsBoundary": {
+                        "type": "object",
+                        "properties": {
+                          "managedPolicyArn": {
+                            "$ref": "3/managedPolicies/items"
+                          },
+                          "customerManagedPolicy": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "$ref": "10/organization/properties/organizationalUnits/items/properties/name"
+                              },
+                              "path": {
+                                "type": "string",
+                                "default": "/"
+                              }
+                            },
+                            "required": ["name"],
+                            "additionalProperties": false,
+                            "errorMessage": {
+                              "required": {
+                                "name": "Missing required property: name"
+                              }
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "tags": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name", "description"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "description": "Missing required property: description"
+                      }
+                    }
+                  }
+                },
+                "assignments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "principalType": {
+                        "type": "string",
+                        "enum": ["USER", "GROUP"]
+                      },
+                      "principalId": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$"
+                      },
+                      "permissionSetName": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "targetType": {
+                        "type": "string",
+                        "const": "AWS_ACCOUNT"
+                      },
+                      "targetKey": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/key"
+                      },
+                      "targetAccountId": {
+                        "$ref": "6/management/properties/accountId"
+                      }
+                    },
+                    "required": [
+                      "principalType",
+                      "principalId",
+                      "permissionSetName",
+                      "targetType",
+                      "targetKey"
+                    ],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "principalType": "Missing required property: principalType",
+                        "principalId": "Missing required property: principalId",
+                        "permissionSetName": "Missing required property: permissionSetName",
+                        "targetType": "Missing required property: targetType",
+                        "targetKey": "Missing required property: targetKey"
+                      }
+                    }
+                  }
+                },
+                "applications": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                      },
+                      "applicationProviderArn": {
+                        "type": "string",
+                        "pattern": "^arn:aws:[a-zA-Z0-9-]+:[a-zA-Z0-9-]*:\\d{0,12}:[a-zA-Z0-9-_/:.]+$"
+                      },
+                      "instanceArn": {
+                        "$ref": "4/instanceArn"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": ["ENABLED", "DISABLED"],
+                        "default": "ENABLED"
+                      },
+                      "portalOptions": {
+                        "type": "object",
+                        "properties": {
+                          "visibility": {
+                            "type": "string",
+                            "enum": ["ENABLED", "DISABLED"],
+                            "default": "ENABLED"
+                          },
+                          "signInOptions": {
+                            "type": "object",
+                            "properties": {
+                              "origin": {
+                                "type": "string",
+                                "enum": ["IDENTITY_CENTER", "APPLICATION"],
+                                "default": "IDENTITY_CENTER"
+                              },
+                              "applicationUrl": {
+                                "type": "string",
+                                "format": "uri"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "tags": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name", "applicationProviderArn", "instanceArn"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "applicationProviderArn": "Missing required property: applicationProviderArn",
+                        "instanceArn": "Missing required property: instanceArn"
+                      }
+                    }
+                  }
+                },
+                "trustedTokenIssuers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "issuerUrl": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "clientToken": {
+                        "type": "string"
+                      },
+                      "trustedTokenIssuerType": {
+                        "type": "string",
+                        "enum": ["OIDC_JWT"]
+                      },
+                      "trustedTokenIssuerConfiguration": {
+                        "type": "object",
+                        "properties": {
+                          "issuerUrl": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "audienceList": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "jwksRetrievalOption": {
+                            "type": "string",
+                            "enum": ["OPEN_ID_DISCOVERY"],
+                            "default": "OPEN_ID_DISCOVERY"
+                          }
+                        },
+                        "required": ["issuerUrl", "audienceList"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "issuerUrl": "Missing required property: issuerUrl",
+                            "audienceList": "Missing required property: audienceList"
+                          }
+                        }
+                      },
+                      "tags": {
+                        "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "issuerUrl",
+                      "trustedTokenIssuerType",
+                      "trustedTokenIssuerConfiguration"
+                    ],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "issuerUrl": "Missing required property: issuerUrl",
+                        "trustedTokenIssuerType": "Missing required property: trustedTokenIssuerType",
+                        "trustedTokenIssuerConfiguration": "Missing required property: trustedTokenIssuerConfiguration"
+                      }
+                    }
+                  }
+                },
+                "tags": {
+                  "$ref": "3/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                }
+              },
+              "required": ["enabled", "instanceArn", "permissionSets", "assignments"],
+              "additionalProperties": false,
+              "errorMessage": {
+                "required": {
+                  "enabled": "Missing required property: enabled",
+                  "instanceArn": "Missing required property: instanceArn",
+                  "permissionSets": "Missing required property: permissionSets",
+                  "assignments": "Missing required property: assignments"
+                }
+              }
+            },
+            "options": {
+              "type": "object",
+              "properties": {
+                "enableAllAwsServices": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "autoCreateCrossAccountRoles": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableOrganizationCloudTrail": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableOrganizationConfig": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableOrganizationGuardDuty": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableOrganizationSecurityHub": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultTags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "resourcePrefix": {
+                  "type": "string"
+                },
+                "requireMfaForIdentityCenter": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultSessionDuration": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12,
+                  "default": 8
+                },
+                "enableTrustedAccess": {
+                  "type": "boolean",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "project",
+            "company",
+            "management",
+            "type",
+            "organization",
+            "identityCenter"
+          ],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "project": "Missing required property: project",
+              "company": "Missing required property: company",
+              "management": "Missing required property: management",
+              "type": "Missing required property: type",
+              "organization": "Missing required property: organization",
+              "identityCenter": "Missing required property: identityCenter"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "3/0/properties/project"
+            },
+            "company": {
+              "$ref": "3/0/properties/company"
+            },
+            "management": {
+              "$ref": "3/0/properties/management"
+            },
+            "type": {
+              "type": "string",
+              "const": "shared-services"
+            },
+            "sharedServices": {
+              "type": "object",
+              "properties": {
+                "services": {
+                  "type": "object",
+                  "properties": {
+                    "monitoring": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "centralLogging": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountAccess": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "logRetentionDays": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3653,
+                          "default": 365
+                        },
+                        "enableXRayTracing": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "enableCloudWatchInsights": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "enableContainerInsights": {
+                          "type": "boolean",
+                          "default": true
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "networking": {
+                      "type": "object",
+                      "properties": {
+                        "transitGateway": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": false
+                            },
+                            "asn": {
+                              "type": "integer",
+                              "minimum": 64512,
+                              "maximum": 65534
+                            },
+                            "enableDnsSupport": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "enableMulticast": {
+                              "type": "boolean",
+                              "default": false
+                            },
+                            "defaultRouteTableAssociation": {
+                              "type": "string",
+                              "enum": ["enable", "disable"],
+                              "default": "enable"
+                            },
+                            "defaultRouteTablePropagation": {
+                              "type": "string",
+                              "enum": ["enable", "disable"],
+                              "default": "enable"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "vpcPeering": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": false
+                            },
+                            "autoAcceptPeering": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "directConnect": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": false
+                            },
+                            "virtualInterfaces": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "security": {
+                      "type": "object",
+                      "properties": {
+                        "certificateManager": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "crossAccountSharing": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "secretsManager": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "crossAccountAccess": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "automaticRotation": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "kmsKeySharing": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "defaultKeyPolicy": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "backup": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "crossAccountBackup": {
+                          "type": "boolean",
+                          "default": true
+                        },
+                        "backupVault": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "kmsKeyId": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "defaultBackupPlan": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "retentionDays": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 36500,
+                              "default": 30
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "devops": {
+                      "type": "object",
+                      "properties": {
+                        "artifactStore": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "crossAccountAccess": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "s3BucketEncryption": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "versioningEnabled": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "containerRegistry": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "crossAccountAccess": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "imageScanningEnabled": {
+                              "type": "boolean",
+                              "default": true
+                            },
+                            "lifecyclePolicyEnabled": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "options": {
+              "type": "object",
+              "properties": {
+                "enableCrossAccountSharing": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "createDefaultCrossAccountRoles": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableCostAllocationTags": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableResourceAccessManager": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultTags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "resourcePrefix": {
+                  "type": "string"
+                },
+                "enableAutomatedBackup": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableMonitoringAlerts": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultRetentionDays": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3653,
+                  "default": 365
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": ["project", "company", "management", "type", "sharedServices"],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "project": "Missing required property: project",
+              "company": "Missing required property: company",
+              "management": "Missing required property: management",
+              "type": "Missing required property: type",
+              "sharedServices": "Missing required property: sharedServices"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "3/0/properties/project"
+            },
+            "company": {
+              "$ref": "3/0/properties/company"
+            },
+            "management": {
+              "$ref": "3/0/properties/management"
+            },
+            "type": {
+              "type": "string",
+              "const": "workload"
+            },
+            "environments": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "accountId": {
+                    "$ref": "6/0/properties/management/properties/accountId"
+                  },
+                  "region": {
+                    "$ref": "6/0/properties/management/properties/region"
+                  },
+                  "environment": {
+                    "$ref": "6/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/environment"
+                  },
+                  "config": {
+                    "type": "object",
+                    "properties": {
+                      "scaling": {
+                        "type": "object",
+                        "properties": {
+                          "minCapacity": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "maxCapacity": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "targetUtilization": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "monitoring": {
+                        "type": "object",
+                        "properties": {
+                          "enableDetailedMonitoring": {
+                            "type": "boolean",
+                            "default": true
+                          },
+                          "logLevel": {
+                            "type": "string",
+                            "enum": ["DEBUG", "INFO", "WARN", "ERROR"],
+                            "default": "INFO"
+                          },
+                          "enableXRayTracing": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "security": {
+                        "type": "object",
+                        "properties": {
+                          "enableWaf": {
+                            "type": "boolean",
+                            "default": true
+                          },
+                          "enableShield": {
+                            "type": "boolean",
+                            "default": false
+                          },
+                          "enableGuardDuty": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "backup": {
+                        "type": "object",
+                        "properties": {
+                          "enabled": {
+                            "type": "boolean",
+                            "default": true
+                          },
+                          "retentionDays": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 36500,
+                            "default": 30
+                          },
+                          "crossRegionBackup": {
+                            "type": "boolean",
+                            "default": false
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["accountId", "region", "environment"],
+                "additionalProperties": false
+              }
+            },
+            "deploymentPermissions": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "mode": {
+                  "$ref": "5/0/properties/organization/properties/mode",
+                  "default": "create"
+                },
+                "projects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "environments": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "accountId": {
+                              "$ref": "11/0/properties/management/properties/accountId"
+                            },
+                            "region": {
+                              "$ref": "11/0/properties/management/properties/region"
+                            }
+                          },
+                          "required": ["name", "accountId", "region"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "name": "Missing required property: name",
+                              "accountId": "Missing required property: accountId",
+                              "region": "Missing required property: region"
+                            }
+                          }
+                        },
+                        "minItems": 1
+                      }
+                    },
+                    "required": ["name", "environments"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "environments": "Missing required property: environments"
+                      }
+                    }
+                  },
+                  "minItems": 1
+                },
+                "crossAccountRoles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "roleName": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "trustedAccountId": {
+                        "$ref": "8/0/properties/management/properties/accountId"
+                      },
+                      "sessionDuration": {
+                        "$ref": "8/0/properties/identityCenter/properties/permissionSets/items/properties/sessionDuration"
+                      },
+                      "externalId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["roleName", "trustedAccountId"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "roleName": "Missing required property: roleName",
+                        "trustedAccountId": "Missing required property: trustedAccountId"
+                      }
+                    }
+                  }
+                },
+                "githubOidc": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean",
+                      "default": true
+                    },
+                    "repositoryPattern": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "roleName": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sessionDuration": {
+                      "$ref": "7/0/properties/identityCenter/properties/permissionSets/items/properties/sessionDuration"
+                    }
+                  },
+                  "required": ["repositoryPattern", "roleName"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "repositoryPattern": "Missing required property: repositoryPattern",
+                      "roleName": "Missing required property: roleName"
+                    }
+                  }
+                }
+              },
+              "required": ["projects"],
+              "additionalProperties": false,
+              "errorMessage": {
+                "required": {
+                  "projects": "Missing required property: projects"
+                }
+              }
+            },
+            "applications": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "runtime": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["container", "serverless", "vm", "static"]
+                      },
+                      "platform": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "dependencies": {
+                    "type": "object",
+                    "properties": {
+                      "databases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "queues": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "apis": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "storage": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false,
+                "errorMessage": {
+                  "required": {
+                    "name": "Missing required property: name"
+                  }
+                }
+              }
+            },
+            "options": {
+              "type": "object",
+              "properties": {
+                "enableBlueGreenDeployment": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "enableCanaryDeployment": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "enableAutoRollback": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableDisasterRecovery": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "enableAutomatedTesting": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableSecurityScanning": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultTags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "resourcePrefix": {
+                  "type": "string"
+                },
+                "enableCostOptimization": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enablePerformanceMonitoring": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "promotionOrder": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": ["project", "company", "management", "type", "environments"],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "project": "Missing required property: project",
+              "company": "Missing required property: company",
+              "management": "Missing required property: management",
+              "type": "Missing required property: type",
+              "environments": "Missing required property: environments"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "project": {
+              "$ref": "3/0/properties/project"
+            },
+            "company": {
+              "$ref": "3/0/properties/company"
+            },
+            "management": {
+              "$ref": "3/0/properties/management"
+            },
+            "type": {
+              "type": "string",
+              "const": "baseline"
+            },
+            "networking": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "$ref": "5/0/properties/organization/properties/mode",
+                  "default": "create"
+                },
+                "vpc": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "cidr": {
+                      "type": "string",
+                      "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(?:[0-9]|[1-2][0-9]|3[0-2])$"
+                    },
+                    "region": {
+                      "$ref": "7/0/properties/management/properties/region"
+                    },
+                    "enableDnsHostnames": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "enableDnsSupport": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "subnets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["public", "private", "isolated"]
+                          },
+                          "cidr": {
+                            "$ref": "4/cidr"
+                          },
+                          "availabilityZone": {
+                            "type": "string",
+                            "pattern": "^[a-z]{2}-[a-z]+-\\d+[a-z]$"
+                          },
+                          "mapPublicIpOnLaunch": {
+                            "$ref": "10/0/properties/organization/properties/enabled",
+                            "default": false
+                          },
+                          "tags": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                          }
+                        },
+                        "required": ["name", "type", "cidr", "availabilityZone"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name",
+                            "type": "Missing required property: type",
+                            "cidr": "Missing required property: cidr",
+                            "availabilityZone": "Missing required property: availabilityZone"
+                          }
+                        }
+                      },
+                      "minItems": 1
+                    },
+                    "routeTables": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "routes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "destination": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "cidr"
+                                        },
+                                        "cidr": {
+                                          "$ref": "11/cidr"
+                                        }
+                                      },
+                                      "required": ["type", "cidr"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type",
+                                          "cidr": "Missing required property: cidr"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "prefix-list"
+                                        },
+                                        "prefixListId": {
+                                          "type": "string",
+                                          "pattern": "^pl-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type", "prefixListId"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type",
+                                          "prefixListId": "Missing required property: prefixListId"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "target": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "internet-gateway"
+                                        },
+                                        "gatewayId": {
+                                          "type": "string",
+                                          "pattern": "^igw-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "nat-gateway"
+                                        },
+                                        "gatewayId": {
+                                          "type": "string",
+                                          "pattern": "^nat-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "vpc-endpoint"
+                                        },
+                                        "endpointId": {
+                                          "type": "string",
+                                          "pattern": "^vpce-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "transit-gateway"
+                                        },
+                                        "gatewayId": {
+                                          "type": "string",
+                                          "pattern": "^tgw-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "vpc-peering"
+                                        },
+                                        "connectionId": {
+                                          "type": "string",
+                                          "pattern": "^pcx-[a-z0-9]+$"
+                                        }
+                                      },
+                                      "required": ["type"],
+                                      "additionalProperties": false,
+                                      "errorMessage": {
+                                        "required": {
+                                          "type": "Missing required property: type"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "description": {
+                                  "$ref": "13/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                                }
+                              },
+                              "required": ["destination", "target"],
+                              "additionalProperties": false,
+                              "errorMessage": {
+                                "required": {
+                                  "destination": "Missing required property: destination",
+                                  "target": "Missing required property: target"
+                                }
+                              }
+                            }
+                          },
+                          "subnetAssociations": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "11/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                            }
+                          },
+                          "tags": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                          }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name"
+                          }
+                        }
+                      }
+                    },
+                    "natGateways": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "subnetName": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "allocationId": {
+                            "type": "string",
+                            "pattern": "^eipalloc-[a-z0-9]+$"
+                          },
+                          "connectivityType": {
+                            "type": "string",
+                            "enum": ["public", "private"],
+                            "default": "public"
+                          },
+                          "tags": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                          }
+                        },
+                        "required": ["name", "subnetName"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name",
+                            "subnetName": "Missing required property: subnetName"
+                          }
+                        }
+                      }
+                    },
+                    "internetGateway": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "tags": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                        }
+                      },
+                      "required": ["name"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "name": "Missing required property: name"
+                        }
+                      }
+                    },
+                    "vpcEndpoints": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "service": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "s3",
+                                  "dynamodb",
+                                  "ec2",
+                                  "ssm",
+                                  "ssmmessages",
+                                  "ec2messages",
+                                  "kms",
+                                  "logs",
+                                  "monitoring",
+                                  "events",
+                                  "secretsmanager",
+                                  "lambda",
+                                  "sts",
+                                  "elasticloadbalancing"
+                                ]
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": ["Gateway", "Interface"]
+                          },
+                          "subnetNames": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "11/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                            }
+                          },
+                          "routeTableNames": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "11/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                            }
+                          },
+                          "policyDocument": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          },
+                          "privateDnsEnabled": {
+                            "$ref": "10/0/properties/organization/properties/enabled",
+                            "default": true
+                          },
+                          "tags": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                          }
+                        },
+                        "required": ["name", "service", "type"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name",
+                            "service": "Missing required property: service",
+                            "type": "Missing required property: type"
+                          }
+                        }
+                      }
+                    },
+                    "flowLogs": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "$ref": "9/0/properties/organization/properties/enabled",
+                          "default": true
+                        },
+                        "destination": {
+                          "type": "string",
+                          "enum": ["cloudwatch", "s3"],
+                          "default": "cloudwatch"
+                        },
+                        "logFormat": {
+                          "type": "string"
+                        },
+                        "logGroup": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "s3Bucket": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "trafficType": {
+                          "type": "string",
+                          "enum": ["ALL", "ACCEPT", "REJECT"],
+                          "default": "ALL"
+                        },
+                        "tags": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "tags": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                    }
+                  },
+                  "required": ["name", "cidr", "region", "subnets"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "name": "Missing required property: name",
+                      "cidr": "Missing required property: cidr",
+                      "region": "Missing required property: region",
+                      "subnets": "Missing required property: subnets"
+                    }
+                  }
+                }
+              },
+              "required": ["vpc"],
+              "additionalProperties": false,
+              "errorMessage": {
+                "required": {
+                  "vpc": "Missing required property: vpc"
+                }
+              }
+            },
+            "security": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "$ref": "5/0/properties/organization/properties/mode",
+                  "default": "create"
+                },
+                "securityGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                      },
+                      "rules": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": ["ingress", "egress"]
+                            },
+                            "protocol": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": ["tcp", "udp", "icmp", "icmpv6"]
+                                },
+                                {
+                                  "type": "integer",
+                                  "minimum": -1,
+                                  "maximum": 255
+                                }
+                              ]
+                            },
+                            "port": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 65535
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "from": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 65535
+                                    },
+                                    "to": {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 65535
+                                    }
+                                  },
+                                  "required": ["from", "to"],
+                                  "additionalProperties": false,
+                                  "errorMessage": {
+                                    "required": {
+                                      "from": "Missing required property: from",
+                                      "to": "Missing required property: to"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "source": {
+                              "anyOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "cidr"
+                                    },
+                                    "cidr": {
+                                      "$ref": "13/networking/properties/vpc/properties/cidr"
+                                    }
+                                  },
+                                  "required": ["type", "cidr"],
+                                  "additionalProperties": false,
+                                  "errorMessage": {
+                                    "required": {
+                                      "type": "Missing required property: type",
+                                      "cidr": "Missing required property: cidr"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "security-group"
+                                    },
+                                    "securityGroupId": {
+                                      "type": "string",
+                                      "pattern": "^sg-[a-z0-9]+$"
+                                    },
+                                    "securityGroupName": {
+                                      "$ref": "15/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                                    }
+                                  },
+                                  "required": ["type"],
+                                  "additionalProperties": false,
+                                  "errorMessage": {
+                                    "required": {
+                                      "type": "Missing required property: type"
+                                    }
+                                  }
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "prefix-list"
+                                    },
+                                    "prefixListId": {
+                                      "type": "string",
+                                      "pattern": "^pl-[a-z0-9]+$"
+                                    }
+                                  },
+                                  "required": ["type", "prefixListId"],
+                                  "additionalProperties": false,
+                                  "errorMessage": {
+                                    "required": {
+                                      "type": "Missing required property: type",
+                                      "prefixListId": "Missing required property: prefixListId"
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "description": {
+                              "$ref": "11/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                            }
+                          },
+                          "required": ["type", "protocol", "source"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "type": "Missing required property: type",
+                              "protocol": "Missing required property: protocol",
+                              "source": "Missing required property: source"
+                            }
+                          }
+                        }
+                      },
+                      "tags": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name", "description"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "description": "Missing required property: description"
+                      }
+                    }
+                  }
+                },
+                "networkAcls": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "rules": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "ruleNumber": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 32766
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": ["ingress", "egress"]
+                            },
+                            "protocol": {
+                              "$ref": "7/securityGroups/items/properties/rules/items/properties/protocol"
+                            },
+                            "port": {
+                              "$ref": "7/securityGroups/items/properties/rules/items/properties/port"
+                            },
+                            "source": {
+                              "$ref": "9/networking/properties/vpc/properties/cidr"
+                            },
+                            "action": {
+                              "type": "string",
+                              "enum": ["allow", "deny"]
+                            },
+                            "description": {
+                              "$ref": "11/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                            }
+                          },
+                          "required": ["ruleNumber", "type", "protocol", "source", "action"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "ruleNumber": "Missing required property: ruleNumber",
+                              "type": "Missing required property: type",
+                              "protocol": "Missing required property: protocol",
+                              "source": "Missing required property: source",
+                              "action": "Missing required property: action"
+                            }
+                          }
+                        }
+                      },
+                      "subnetAssociations": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        }
+                      },
+                      "tags": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name"
+                      }
+                    }
+                  }
+                },
+                "iamRoles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                      },
+                      "assumeRolePolicy": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "string",
+                            "default": "2012-10-17"
+                          },
+                          "statements": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "effect": {
+                                  "type": "string",
+                                  "enum": ["Allow", "Deny"]
+                                },
+                                "actions": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "resources": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  ]
+                                },
+                                "conditions": {
+                                  "type": "object",
+                                  "additionalProperties": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "principals": {
+                                  "type": "object",
+                                  "properties": {
+                                    "AWS": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "Service": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "Federated": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": ["effect", "actions"],
+                              "additionalProperties": false,
+                              "errorMessage": {
+                                "required": {
+                                  "effect": "Missing required property: effect",
+                                  "actions": "Missing required property: actions"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "required": ["statements"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "statements": "Missing required property: statements"
+                          }
+                        }
+                      },
+                      "inlinePolicies": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "$ref": "2/assumeRolePolicy"
+                        }
+                      },
+                      "managedPolicyArns": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "maxSessionDuration": {
+                        "type": "integer",
+                        "minimum": 3600,
+                        "maximum": 43200
+                      },
+                      "path": {
+                        "type": "string",
+                        "default": "/"
+                      },
+                      "tags": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name", "assumeRolePolicy"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "assumeRolePolicy": "Missing required property: assumeRolePolicy"
+                      }
+                    }
+                  }
+                },
+                "kmsKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                      },
+                      "description": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                      },
+                      "keyUsage": {
+                        "type": "string",
+                        "enum": ["ENCRYPT_DECRYPT", "SIGN_VERIFY"],
+                        "default": "ENCRYPT_DECRYPT"
+                      },
+                      "keySpec": {
+                        "type": "string",
+                        "enum": [
+                          "SYMMETRIC_DEFAULT",
+                          "RSA_2048",
+                          "RSA_3072",
+                          "RSA_4096",
+                          "ECC_NIST_P256",
+                          "ECC_NIST_P384",
+                          "ECC_NIST_P521",
+                          "ECC_SECG_P256K1"
+                        ],
+                        "default": "SYMMETRIC_DEFAULT"
+                      },
+                      "policy": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "string",
+                            "default": "2012-10-17"
+                          },
+                          "statements": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "7/iamRoles/items/properties/assumeRolePolicy/properties/statements/items"
+                            }
+                          }
+                        },
+                        "required": ["statements"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "statements": "Missing required property: statements"
+                          }
+                        }
+                      },
+                      "enableKeyRotation": {
+                        "$ref": "8/0/properties/organization/properties/enabled",
+                        "default": true
+                      },
+                      "deletionWindowInDays": {
+                        "type": "integer",
+                        "minimum": 7,
+                        "maximum": 30
+                      },
+                      "aliases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "tags": {
+                        "$ref": "8/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                      }
+                    },
+                    "required": ["name", "description"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "description": "Missing required property: description"
+                      }
+                    }
+                  }
+                },
+                "sessionManager": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "s3BucketName": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "s3KeyPrefix": {
+                      "type": "string"
+                    },
+                    "cloudWatchLogGroupName": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "cloudWatchEncryptionEnabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "idleSessionTimeout": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 60,
+                      "default": 20
+                    },
+                    "maxSessionDuration": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 60,
+                      "default": 60
+                    },
+                    "runAsEnabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": false
+                    },
+                    "runAsDefaultUser": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "compliance": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "$ref": "5/0/properties/organization/properties/mode",
+                  "default": "create"
+                },
+                "cloudTrail": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "s3Config": {
+                      "type": "object",
+                      "properties": {
+                        "bucketName": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "keyPrefix": {
+                          "type": "string"
+                        },
+                        "includeGlobalServiceEvents": {
+                          "$ref": "9/0/properties/organization/properties/enabled",
+                          "default": true
+                        },
+                        "isMultiRegionTrail": {
+                          "$ref": "9/0/properties/organization/properties/enabled",
+                          "default": true
+                        },
+                        "enableLogFileValidation": {
+                          "$ref": "9/0/properties/organization/properties/enabled",
+                          "default": true
+                        }
+                      },
+                      "required": ["bucketName"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "bucketName": "Missing required property: bucketName"
+                        }
+                      }
+                    },
+                    "cloudWatchConfig": {
+                      "type": "object",
+                      "properties": {
+                        "logGroupName": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "roleArn": {
+                          "type": "string",
+                          "pattern": "^arn:aws:iam::\\d{12}:role\\/.*$"
+                        }
+                      },
+                      "required": ["logGroupName"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "logGroupName": "Missing required property: logGroupName"
+                        }
+                      }
+                    },
+                    "eventSelectors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "readWriteType": {
+                            "type": "string",
+                            "enum": ["All", "ReadOnly", "WriteOnly"],
+                            "default": "All"
+                          },
+                          "includeManagementEvents": {
+                            "$ref": "10/0/properties/organization/properties/enabled",
+                            "default": true
+                          },
+                          "dataResources": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string"
+                                },
+                                "values": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": ["type", "values"],
+                              "additionalProperties": false,
+                              "errorMessage": {
+                                "required": {
+                                  "type": "Missing required property: type",
+                                  "values": "Missing required property: values"
+                                }
+                              }
+                            }
+                          },
+                          "excludeManagementEventSources": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "insightSelectors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "insightType": {
+                            "type": "string",
+                            "enum": ["ApiCallRateInsight"]
+                          }
+                        },
+                        "required": ["insightType"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "insightType": "Missing required property: insightType"
+                          }
+                        }
+                      }
+                    },
+                    "kmsKeyId": {
+                      "type": "string"
+                    },
+                    "snsTopicName": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "tags": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                    }
+                  },
+                  "required": ["name", "s3Config"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "name": "Missing required property: name",
+                      "s3Config": "Missing required property: s3Config"
+                    }
+                  }
+                },
+                "configService": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "recorder": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "roleArn": {
+                          "type": "string",
+                          "pattern": "^arn:aws:iam::\\d{12}:role\\/.*$"
+                        },
+                        "recordingGroup": {
+                          "type": "object",
+                          "properties": {
+                            "allSupported": {
+                              "$ref": "11/0/properties/organization/properties/enabled",
+                              "default": true
+                            },
+                            "includeGlobalResourceTypes": {
+                              "$ref": "11/0/properties/organization/properties/enabled",
+                              "default": true
+                            },
+                            "resourceTypes": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": ["name"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "name": "Missing required property: name"
+                        }
+                      }
+                    },
+                    "deliveryChannel": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "s3BucketName": {
+                          "$ref": "9/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                        },
+                        "s3KeyPrefix": {
+                          "type": "string"
+                        },
+                        "snsTopicArn": {
+                          "type": "string",
+                          "pattern": "^arn:aws:sns:.*$"
+                        },
+                        "deliveryFrequency": {
+                          "type": "string",
+                          "enum": [
+                            "One_Hour",
+                            "Three_Hours",
+                            "Six_Hours",
+                            "Twelve_Hours",
+                            "TwentyFour_Hours"
+                          ],
+                          "default": "TwentyFour_Hours"
+                        }
+                      },
+                      "required": ["name", "s3BucketName"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "name": "Missing required property: name",
+                          "s3BucketName": "Missing required property: s3BucketName"
+                        }
+                      }
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "description": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/accounts/items/properties/purpose"
+                          },
+                          "source": {
+                            "type": "object",
+                            "properties": {
+                              "owner": {
+                                "type": "string",
+                                "enum": ["AWS", "CUSTOM_LAMBDA"]
+                              },
+                              "sourceIdentifier": {
+                                "type": "string"
+                              },
+                              "sourceDetails": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "eventSource": {
+                                      "type": "string"
+                                    },
+                                    "messageType": {
+                                      "type": "string"
+                                    },
+                                    "maximumExecutionFrequency": {
+                                      "type": "string",
+                                      "enum": [
+                                        "One_Hour",
+                                        "Three_Hours",
+                                        "Six_Hours",
+                                        "Twelve_Hours",
+                                        "TwentyFour_Hours"
+                                      ]
+                                    }
+                                  },
+                                  "required": ["eventSource", "messageType"],
+                                  "additionalProperties": false,
+                                  "errorMessage": {
+                                    "required": {
+                                      "eventSource": "Missing required property: eventSource",
+                                      "messageType": "Missing required property: messageType"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "required": ["owner", "sourceIdentifier"],
+                            "additionalProperties": false,
+                            "errorMessage": {
+                              "required": {
+                                "owner": "Missing required property: owner",
+                                "sourceIdentifier": "Missing required property: sourceIdentifier"
+                              }
+                            }
+                          },
+                          "inputParameters": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          },
+                          "scope": {
+                            "type": "object",
+                            "properties": {
+                              "complianceResourceTypes": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "tagKey": {
+                                "type": "string"
+                              },
+                              "tagValue": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": ["name", "source"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name",
+                            "source": "Missing required property: source"
+                          }
+                        }
+                      }
+                    },
+                    "conformancePacks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "templateS3Uri": {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          "templateBody": {
+                            "type": "string"
+                          },
+                          "deliveryS3Bucket": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "deliveryS3KeyPrefix": {
+                            "type": "string"
+                          },
+                          "inputParameters": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "name": "Missing required property: name"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": ["recorder", "deliveryChannel"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "recorder": "Missing required property: recorder",
+                      "deliveryChannel": "Missing required property: deliveryChannel"
+                    }
+                  }
+                },
+                "guardDuty": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "findingPublishing": {
+                      "type": "object",
+                      "properties": {
+                        "frequency": {
+                          "type": "string",
+                          "enum": ["FIFTEEN_MINUTES", "ONE_HOUR", "SIX_HOURS"],
+                          "default": "SIX_HOURS"
+                        },
+                        "destinationArn": {
+                          "type": "string",
+                          "pattern": "^arn:aws:s3:::.*$"
+                        },
+                        "kmsKeyArn": {
+                          "type": "string",
+                          "pattern": "^arn:aws:kms:.*$"
+                        }
+                      },
+                      "required": ["destinationArn"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "destinationArn": "Missing required property: destinationArn"
+                        }
+                      }
+                    },
+                    "malwareProtection": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "s3Protection": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "eksProtection": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "rdsProtection": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "lambdaProtection": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "invitationId": {
+                      "type": "string"
+                    },
+                    "masterId": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "securityHub": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "enableDefaultStandards": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "standards": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "arn": {
+                            "type": "string",
+                            "pattern": "^arn:aws:securityhub:.*$"
+                          },
+                          "enabled": {
+                            "$ref": "10/0/properties/organization/properties/enabled",
+                            "default": true
+                          }
+                        },
+                        "required": ["arn"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "arn": "Missing required property: arn"
+                          }
+                        }
+                      }
+                    },
+                    "autoEnableControls": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "inspector": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "enableEc2": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "enableEcr": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "enableLambda": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "accessAnalyzer": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "$ref": "7/0/properties/organization/properties/enabled",
+                      "default": true
+                    },
+                    "analyzerName": {
+                      "$ref": "7/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["ACCOUNT", "ORGANIZATION"],
+                      "default": "ACCOUNT"
+                    },
+                    "archiveRules": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "ruleName": {
+                            "$ref": "10/0/properties/organization/properties/organizationalUnits/items/properties/name"
+                          },
+                          "filter": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "required": ["ruleName", "filter"],
+                        "additionalProperties": false,
+                        "errorMessage": {
+                          "required": {
+                            "ruleName": "Missing required property: ruleName",
+                            "filter": "Missing required property: filter"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": ["analyzerName"],
+                  "additionalProperties": false,
+                  "errorMessage": {
+                    "required": {
+                      "analyzerName": "Missing required property: analyzerName"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "options": {
+              "type": "object",
+              "properties": {
+                "createDefaultSecurityResources": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableVpcFlowLogs": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "createDefaultKmsKeys": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "enableAllComplianceServices": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "defaultTags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "resourcePrefix": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": ["project", "company", "management", "type", "networking"],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "project": "Missing required property: project",
+              "company": "Missing required property: company",
+              "management": "Missing required property: management",
+              "type": "Missing required property: type",
+              "networking": "Missing required property: networking"
+            }
+          }
+        }
+      ]
     }
-  ]
+  },
+  "$defs": {
+    "AwsAccountId": {
+      "type": "string",
+      "pattern": "^\\d{12}$",
+      "description": "AWS Account ID - exactly 12 digits",
+      "errorMessage": {
+        "pattern": "AWS Account ID must be exactly 12 digits (e.g., \"123456789012\")"
+      }
+    },
+    "AwsRegion": {
+      "type": "string",
+      "pattern": "^[a-z]{2}-[a-z]+-\\d{1,2}$",
+      "description": "AWS Region identifier (e.g., us-east-1, eu-west-2)",
+      "errorMessage": {
+        "pattern": "AWS Region must follow the format: {region}-{location}-{number} (e.g., \"us-east-1\")"
+      }
+    },
+    "AwsArn": {
+      "type": "string",
+      "pattern": "^arn:aws:[a-zA-Z0-9-]+:[a-z0-9-]*:\\d{12}:[a-zA-Z0-9-_/:.]+$",
+      "description": "AWS ARN (Amazon Resource Name)",
+      "errorMessage": {
+        "pattern": "AWS ARN must follow the format: arn:aws:service:region:account-id:resource"
+      }
+    },
+    "ProjectName": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 63,
+      "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$",
+      "description": "Project name - lowercase, alphanumeric with hyphens, 2-63 characters",
+      "errorMessage": {
+        "minLength": "Project name must be at least 2 characters long",
+        "maxLength": "Project name must be no more than 63 characters long",
+        "pattern": "Project name must start with a letter, contain only lowercase letters, numbers, and hyphens, and end with a letter or number"
+      }
+    },
+    "EnvCode": {
+      "enum": ["mgmt", "shrd", "nprd", "pprd", "prod"],
+      "description": "Environment code - standardized environment identifier",
+      "errorMessage": {
+        "enum": "Environment code must be one of: mgmt (management), shrd (shared), nprd (non-production), pprd (pre-production), prod (production)"
+      }
+    },
+    "EmailAddress": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 254,
+      "description": "Valid email address",
+      "errorMessage": {
+        "format": "Must be a valid email address (e.g., \"user@example.com\")",
+        "maxLength": "Email address must be no more than 254 characters long"
+      }
+    },
+    "CompanyName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[\\w\\s&.-]+$",
+      "description": "Company or organization name",
+      "errorMessage": {
+        "minLength": "Company name is required",
+        "maxLength": "Company name must be no more than 100 characters long",
+        "pattern": "Company name can contain letters, numbers, spaces, and common punctuation (&.-)"
+      }
+    },
+    "TagMap": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9+\\-=._:/@]+$": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "additionalProperties": false,
+      "description": "AWS resource tags - key-value pairs for resource organization",
+      "errorMessage": {
+        "additionalProperties": "Tag keys must match AWS tag key requirements (letters, numbers, and +\\-=._:/@)"
+      }
+    },
+    "VpcCidr": {
+      "type": "string",
+      "pattern": "^(10\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(1[6-9]|2[0-8]))|(172\\.(1[6-9]|2\\d|3[01])\\.(\\d{1,3})\\.(\\d{1,3})/(1[6-9]|2[0-8]))|(192\\.168\\.(\\d{1,3})\\.(\\d{1,3})/(1[6-9]|2[0-8]))$",
+      "description": "VPC CIDR block - private IP range for the VPC",
+      "errorMessage": {
+        "pattern": "VPC CIDR must be a valid private IP range (10.0.0.0/16-28, 172.16.0.0/16-28, or 192.168.0.0/16-28)"
+      }
+    },
+    "ManagementRef": {
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "$ref": "#/$defs/AwsAccountId"
+        },
+        "region": {
+          "$ref": "#/$defs/AwsRegion"
+        },
+        "environment": {
+          "const": "mgmt"
+        }
+      },
+      "required": ["accountId", "region", "environment"],
+      "additionalProperties": false,
+      "description": "Reference to the management account configuration",
+      "errorMessage": {
+        "required": {
+          "0": "M",
+          "1": "a",
+          "2": "n",
+          "3": "a",
+          "4": "g",
+          "5": "e",
+          "6": "m",
+          "7": "e",
+          "8": "n",
+          "9": "t",
+          "10": " ",
+          "11": "r",
+          "12": "e",
+          "13": "f",
+          "14": "e",
+          "15": "r",
+          "16": "e",
+          "17": "n",
+          "18": "c",
+          "19": "e",
+          "20": " ",
+          "21": "m",
+          "22": "u",
+          "23": "s",
+          "24": "t",
+          "25": " ",
+          "26": "i",
+          "27": "n",
+          "28": "c",
+          "29": "l",
+          "30": "u",
+          "31": "d",
+          "32": "e",
+          "33": " ",
+          "34": "a",
+          "35": "c",
+          "36": "c",
+          "37": "o",
+          "38": "u",
+          "39": "n",
+          "40": "t",
+          "41": "I",
+          "42": "d",
+          "43": ",",
+          "44": " ",
+          "45": "r",
+          "46": "e",
+          "47": "g",
+          "48": "i",
+          "49": "o",
+          "50": "n",
+          "51": ",",
+          "52": " ",
+          "53": "a",
+          "54": "n",
+          "55": "d",
+          "56": " ",
+          "57": "e",
+          "58": "n",
+          "59": "v",
+          "60": "i",
+          "61": "r",
+          "62": "o",
+          "63": "n",
+          "64": "m",
+          "65": "e",
+          "66": "n",
+          "67": "t",
+          "accountId": "Missing required property: accountId",
+          "region": "Missing required property: region",
+          "environment": "Missing required property: environment"
+        },
+        "additionalProperties": "Management reference cannot contain additional properties"
+      }
+    },
+    "BaseManifest": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "$ref": "#/$defs/ProjectName"
+        },
+        "company": {
+          "$ref": "#/$defs/CompanyName"
+        },
+        "management": {
+          "$ref": "#/$defs/ManagementRef"
+        }
+      },
+      "required": ["project", "company", "management"],
+      "additionalProperties": false,
+      "description": "Base properties required for all manifest types",
+      "errorMessage": {
+        "required": {
+          "0": "A",
+          "1": "l",
+          "2": "l",
+          "3": " ",
+          "4": "m",
+          "5": "a",
+          "6": "n",
+          "7": "i",
+          "8": "f",
+          "9": "e",
+          "10": "s",
+          "11": "t",
+          "12": "s",
+          "13": " ",
+          "14": "m",
+          "15": "u",
+          "16": "s",
+          "17": "t",
+          "18": " ",
+          "19": "i",
+          "20": "n",
+          "21": "c",
+          "22": "l",
+          "23": "u",
+          "24": "d",
+          "25": "e",
+          "26": " ",
+          "27": "p",
+          "28": "r",
+          "29": "o",
+          "30": "j",
+          "31": "e",
+          "32": "c",
+          "33": "t",
+          "34": ",",
+          "35": " ",
+          "36": "c",
+          "37": "o",
+          "38": "m",
+          "39": "p",
+          "40": "a",
+          "41": "n",
+          "42": "y",
+          "43": ",",
+          "44": " ",
+          "45": "a",
+          "46": "n",
+          "47": "d",
+          "48": " ",
+          "49": "m",
+          "50": "a",
+          "51": "n",
+          "52": "a",
+          "53": "g",
+          "54": "e",
+          "55": "m",
+          "56": "e",
+          "57": "n",
+          "58": "t",
+          "59": " ",
+          "60": "p",
+          "61": "r",
+          "62": "o",
+          "63": "p",
+          "64": "e",
+          "65": "r",
+          "66": "t",
+          "67": "i",
+          "68": "e",
+          "69": "s",
+          "project": "Missing required property: project",
+          "company": "Missing required property: company",
+          "management": "Missing required property: management"
+        },
+        "additionalProperties": "Base manifest cannot contain additional properties beyond project, company, and management"
+      }
+    }
+  },
+  "unevaluatedProperties": false
 }

@@ -26,12 +26,26 @@ export const ManifestContextSchema = z.object({
 });
 
 /**
- * Base schema that all manifest types must extend
- * Note: Account context (accountId, region, environment) is handled
- * per manifest type in their respective sections (e.g., management, environments)
+ * Management account reference schema
+ * Used consistently across all manifest types to reference the management account
  */
-export const ManifestBaseSchema = ManifestCoreSchema;
+export const ManagementRefSchema = z.object({
+  accountId: AwsAccountIdSchema,
+  region: AwsRegionSchema,
+  environment: z.literal('mgmt'),
+});
+
+/**
+ * Base schema that all manifest types must extend
+ * Includes the core fields (project, company) and management reference
+ */
+export const ManifestBaseSchema = ManifestCoreSchema.merge(
+  z.object({
+    management: ManagementRefSchema,
+  }),
+);
 
 export type ManifestCore = z.infer<typeof ManifestCoreSchema>;
 export type ManifestContext = z.infer<typeof ManifestContextSchema>;
+export type ManagementRef = z.infer<typeof ManagementRefSchema>;
 export type ManifestBase = z.infer<typeof ManifestBaseSchema>;

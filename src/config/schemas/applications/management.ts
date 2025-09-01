@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ManifestBaseSchema } from '../base';
-import { ManagementConfigSchema } from '../resources';
 import { OrganizationSchema } from '../resources';
 import { IdentityCenterSchema } from '../resources';
 
@@ -33,94 +32,86 @@ import { IdentityCenterSchema } from '../resources';
  * Combines all organizational governance components into a single
  * configuration that establishes the AWS organization foundation.
  */
-export const ManagementAppConfigSchema = ManifestBaseSchema.merge(
-  z.object({
-    /**
-     * Application type identifier
-     */
-    type: z.literal('management'),
+export const ManagementAppConfigSchema = ManifestBaseSchema.extend({
+  /**
+   * Application type identifier
+   */
+  type: z.literal('management'),
 
-    /**
-     * Management account configuration
-     * Defines the core management account settings and metadata
-     */
-    management: ManagementConfigSchema,
+  /**
+   * AWS Organizations configuration
+   * Defines organizational units, service control policies, and account management
+   */
+  organization: OrganizationSchema,
 
-    /**
-     * AWS Organizations configuration
-     * Defines organizational units, service control policies, and account management
-     */
-    organization: OrganizationSchema,
+  /**
+   * AWS Identity Center (SSO) configuration
+   * Defines centralized identity management, permission sets, and account assignments
+   */
+  identityCenter: IdentityCenterSchema,
 
-    /**
-     * AWS Identity Center (SSO) configuration
-     * Defines centralized identity management, permission sets, and account assignments
-     */
-    identityCenter: IdentityCenterSchema,
+  /**
+   * Additional management configuration options
+   */
+  options: z
+    .object({
+      /**
+       * Whether to enable all AWS services by default in new accounts
+       */
+      enableAllAwsServices: z.boolean().default(true),
 
-    /**
-     * Additional management configuration options
-     */
-    options: z
-      .object({
-        /**
-         * Whether to enable all AWS services by default in new accounts
-         */
-        enableAllAwsServices: z.boolean().default(true),
+      /**
+       * Whether to automatically create cross-account roles in new accounts
+       */
+      autoCreateCrossAccountRoles: z.boolean().default(true),
 
-        /**
-         * Whether to automatically create cross-account roles in new accounts
-         */
-        autoCreateCrossAccountRoles: z.boolean().default(true),
+      /**
+       * Whether to enable CloudTrail organization trail
+       */
+      enableOrganizationCloudTrail: z.boolean().default(true),
 
-        /**
-         * Whether to enable CloudTrail organization trail
-         */
-        enableOrganizationCloudTrail: z.boolean().default(true),
+      /**
+       * Whether to enable AWS Config organization conformance packs
+       */
+      enableOrganizationConfig: z.boolean().default(true),
 
-        /**
-         * Whether to enable AWS Config organization conformance packs
-         */
-        enableOrganizationConfig: z.boolean().default(true),
+      /**
+       * Whether to enable GuardDuty organization features
+       */
+      enableOrganizationGuardDuty: z.boolean().default(true),
 
-        /**
-         * Whether to enable GuardDuty organization features
-         */
-        enableOrganizationGuardDuty: z.boolean().default(true),
+      /**
+       * Whether to enable Security Hub organization features
+       */
+      enableOrganizationSecurityHub: z.boolean().default(true),
 
-        /**
-         * Whether to enable Security Hub organization features
-         */
-        enableOrganizationSecurityHub: z.boolean().default(true),
+      /**
+       * Default tags to apply to all organizational resources
+       */
+      defaultTags: z.record(z.string()).optional(),
 
-        /**
-         * Default tags to apply to all organizational resources
-         */
-        defaultTags: z.record(z.string()).optional(),
+      /**
+       * Resource naming prefix for management account resources
+       */
+      resourcePrefix: z.string().optional(),
 
-        /**
-         * Resource naming prefix for management account resources
-         */
-        resourcePrefix: z.string().optional(),
+      /**
+       * Whether to require MFA for all Identity Center users
+       */
+      requireMfaForIdentityCenter: z.boolean().default(true),
 
-        /**
-         * Whether to require MFA for all Identity Center users
-         */
-        requireMfaForIdentityCenter: z.boolean().default(true),
+      /**
+       * Session duration for Identity Center permission sets (in hours)
+       */
+      defaultSessionDuration: z.number().int().min(1).max(12).default(8),
 
-        /**
-         * Session duration for Identity Center permission sets (in hours)
-         */
-        defaultSessionDuration: z.number().int().min(1).max(12).default(8),
-
-        /**
-         * Whether to enable trusted access for AWS services
-         */
-        enableTrustedAccess: z.boolean().default(true),
-      })
-      .optional(),
-  }),
-);
+      /**
+       * Whether to enable trusted access for AWS services
+       */
+      enableTrustedAccess: z.boolean().default(true),
+    })
+    .optional(),
+});
 
 /**
  * Type inference for the management application configuration

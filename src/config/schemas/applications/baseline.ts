@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ManifestBaseSchema } from '../base';
-import { ManagementConfigSchema } from '../resources/accounts';
 import { NetworkingConfigSchema } from '../resources/networking';
 import { SecurityConfigSchema } from '../resources/security';
 import { ComplianceConfigSchema } from '../resources/compliance';
@@ -29,75 +28,67 @@ import { ComplianceConfigSchema } from '../resources/compliance';
  * Combines all foundational infrastructure components into a single
  * configuration that can be deployed to establish account baselines.
  */
-export const BaselineAppConfigSchema = ManifestBaseSchema.merge(
-  z.object({
-    /**
-     * Application type identifier
-     */
-    type: z.literal('baseline'),
+export const BaselineAppConfigSchema = ManifestBaseSchema.extend({
+  /**
+   * Application type identifier
+   */
+  type: z.literal('baseline'),
 
-    /**
-     * Reference to management account configuration
-     * Used for cross-account role assumptions and organizational context
-     */
-    management: ManagementConfigSchema,
+  /**
+   * Networking configuration
+   * Defines VPC, subnets, routing, gateways, and network security
+   */
+  networking: NetworkingConfigSchema,
 
-    /**
-     * Networking configuration
-     * Defines VPC, subnets, routing, gateways, and network security
-     */
-    networking: NetworkingConfigSchema,
+  /**
+   * Security configuration
+   * Defines security groups, NACLs, IAM roles, KMS keys, and security policies
+   */
+  security: SecurityConfigSchema.optional(),
 
-    /**
-     * Security configuration
-     * Defines security groups, NACLs, IAM roles, KMS keys, and security policies
-     */
-    security: SecurityConfigSchema.optional(),
+  /**
+   * Compliance and monitoring configuration
+   * Defines CloudTrail, Config, GuardDuty, Security Hub, and other compliance tools
+   */
+  compliance: ComplianceConfigSchema.optional(),
 
-    /**
-     * Compliance and monitoring configuration
-     * Defines CloudTrail, Config, GuardDuty, Security Hub, and other compliance tools
-     */
-    compliance: ComplianceConfigSchema.optional(),
+  /**
+   * Additional baseline configuration options
+   */
+  options: z
+    .object({
+      /**
+       * Whether to create default security groups and NACLs
+       */
+      createDefaultSecurityResources: z.boolean().default(true),
 
-    /**
-     * Additional baseline configuration options
-     */
-    options: z
-      .object({
-        /**
-         * Whether to create default security groups and NACLs
-         */
-        createDefaultSecurityResources: z.boolean().default(true),
+      /**
+       * Whether to enable VPC Flow Logs by default
+       */
+      enableVpcFlowLogs: z.boolean().default(true),
 
-        /**
-         * Whether to enable VPC Flow Logs by default
-         */
-        enableVpcFlowLogs: z.boolean().default(true),
+      /**
+       * Whether to create default KMS keys for encryption
+       */
+      createDefaultKmsKeys: z.boolean().default(true),
 
-        /**
-         * Whether to create default KMS keys for encryption
-         */
-        createDefaultKmsKeys: z.boolean().default(true),
+      /**
+       * Whether to enable all compliance services by default
+       */
+      enableAllComplianceServices: z.boolean().default(true),
 
-        /**
-         * Whether to enable all compliance services by default
-         */
-        enableAllComplianceServices: z.boolean().default(true),
+      /**
+       * Default tags to apply to all baseline resources
+       */
+      defaultTags: z.record(z.string()).optional(),
 
-        /**
-         * Default tags to apply to all baseline resources
-         */
-        defaultTags: z.record(z.string()).optional(),
-
-        /**
-         * Resource naming prefix for baseline resources
-         */
-        resourcePrefix: z.string().optional(),
-      })
-      .optional(),
-  }),
-);
+      /**
+       * Resource naming prefix for baseline resources
+       */
+      resourcePrefix: z.string().optional(),
+    })
+    .optional(),
+});
 
 /**
  * Type inference for the baseline application configuration
