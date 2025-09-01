@@ -2,11 +2,11 @@
 '@codeiqlabs/aws-utils': minor
 ---
 
-# Enhanced Unified Schema Generation with Discriminated Unions
+# Enhanced Schema Generation and Application Bootstrap Utilities v1.7.0
 
-This release introduces a comprehensive overhaul of the schema generation system, implementing
-enhanced unified schema generation with discriminated unions, JSON Schema optimizations, and a
-robust TypeScript type generation strategy.
+This release introduces comprehensive enhancements to schema generation and adds powerful
+application bootstrap utilities, delivering significant improvements to developer experience and
+infrastructure automation capabilities.
 
 ## 🎯 Major Features
 
@@ -20,6 +20,17 @@ robust TypeScript type generation strategy.
   - `target: 'jsonSchema2020-12'` for latest JSON Schema specification
 - **Automatic Schema Generation**: Single unified call generates comprehensive schemas with proper
   composition
+
+### Application Bootstrap Utilities
+
+- **ManifestConfigAdapter**: Automatic configuration transformation from manifest to stack
+  configurations
+- **initializeApp Function**: Enhanced application initialization with comprehensive validation and
+  error handling
+- **Application Module**: Complete application bootstrap utilities for CDK applications with type
+  safety
+- **Configuration Transformation**: Standardized patterns for converting manifest data to
+  stack-ready configurations
 
 ### JSON Schema Optimizations
 
