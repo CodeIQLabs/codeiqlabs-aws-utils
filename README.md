@@ -34,6 +34,34 @@ pnpm add @codeiqlabs/aws-utils
 utilities. After installation, you can use `npx @codeiqlabs/aws-utils --help` to see available
 commands.
 
+## 🚀 Quick Start for CDK Applications
+
+### Recommended: Use CdkApplication (Automatic Bootstrap)
+
+```typescript
+// For CDK applications, use the standardized CdkApplication from @codeiqlabs/aws-cdk
+import { CdkApplication } from '@codeiqlabs/aws-cdk';
+import { ManagementBaseStage } from '@codeiqlabs/aws-cdk';
+
+// Automatic manifest loading, validation, and configuration transformation
+const app = await CdkApplication.create({ expectedType: 'management' });
+app.createManagementStage(ManagementStage);
+app.synth();
+```
+
+### Advanced: Direct Manifest Loading
+
+```typescript
+import { loadManifest, ManifestConfigAdapter } from '@codeiqlabs/aws-utils';
+
+// Load and validate any manifest with auto-detection
+const result = await loadManifest('./manifest.yaml');
+if (result.success) {
+  // Transform to stack configuration
+  const stackConfig = ManifestConfigAdapter.toManagementConfig(result.data);
+}
+```
+
 ## 🧠 IntelliSense Setup for Manifest Files
 
 Get **autocomplete, validation, and hover documentation** for your manifest.yaml files in both VS
@@ -578,6 +606,89 @@ for (const workload of manifests.workload) {
 for (const error of manifests.errors) {
   console.error(`Failed to load ${error.filePath}: ${error.error}`);
 }
+```
+
+## 🚀 Enhanced Schema Generation
+
+The package includes a comprehensive enhanced schema generation system with discriminated unions and
+optimized validation.
+
+### Key Features
+
+- **🎯 Discriminated Union Architecture**: Automatic type detection using the `type` field
+- **🏗️ Centralized Primitives**: Reusable components in `$defs` section (AwsAccountId, AwsRegion,
+  ProjectName, etc.)
+- **💬 Enhanced Error Messages**: Actionable validation guidance for better developer experience
+- **🔒 Strict Validation**: Comprehensive property validation with `additionalProperties: false`
+- **📋 JSON Schema 2020-12**: Latest specification with modern validation features
+
+### TypeScript Integration
+
+```typescript
+import { ManifestSchema, type Manifest } from '@codeiqlabs/aws-utils';
+
+// Runtime validation with automatic type inference
+const manifest: Manifest = ManifestSchema.parse(data);
+
+// Type-safe processing with discriminated unions
+function processManifest(manifest: Manifest) {
+  switch (manifest.type) {
+    case 'management':
+      // TypeScript knows this is ManagementAppConfig
+      console.log(manifest.organization.enabled);
+      break;
+    case 'workload':
+      // TypeScript knows this is WorkloadAppConfig
+      console.log(Object.keys(manifest.environments));
+      break;
+    case 'shared-services':
+      // TypeScript knows this is SharedServicesAppConfig
+      console.log(manifest.sharedServices);
+      break;
+    case 'baseline':
+      // TypeScript knows this is BaselineAppConfig
+      console.log(manifest.networking.mode);
+      break;
+    default:
+      // TypeScript ensures exhaustive checking
+      const _exhaustive: never = manifest;
+      throw new Error(`Unknown manifest type: ${_exhaustive}`);
+  }
+}
+```
+
+### Schema Generation
+
+Generate all schemas with enhanced composition:
+
+```bash
+npm run generate-schemas
+```
+
+This creates:
+
+- `schemas/manifest.schema.json` - **Enhanced unified schema** with discriminated unions
+- `schemas/management-manifest.schema.json` - Management account manifests
+- `schemas/workload-manifest.schema.json` - Workload account manifests
+- `schemas/shared-services-manifest.schema.json` - Shared services manifests
+- `schemas/baseline-manifest.schema.json` - Baseline account manifests
+
+### Optimized Primitives
+
+All schemas use centralized, optimized primitives with enhanced error messages:
+
+```typescript
+// AWS Resource Identifiers
+AwsAccountId: "AWS Account ID must be exactly 12 digits (e.g., '123456789012')";
+AwsRegion: "AWS Region must follow the format: {region}-{location}-{number} (e.g., 'us-east-1')";
+
+// Project Identifiers
+ProjectName: 'Project name must start with a letter, contain only lowercase letters, numbers, and hyphens';
+EnvCode: 'Environment code must be one of: mgmt, shrd, nprd, pprd, prod';
+
+// Contact Information
+EmailAddress: "Must be a valid email address (e.g., 'user@example.com')";
+CompanyName: 'Company name can contain letters, numbers, spaces, and common punctuation';
 ```
 
 ## 🏗️ Module Formats

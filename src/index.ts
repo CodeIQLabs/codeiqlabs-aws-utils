@@ -10,6 +10,9 @@ export * from './constants/index';
 // Helper utilities (environment variables, validation, etc.)
 export * from './helpers';
 
+// Application utilities for CDK bootstrap
+export * from './application';
+
 // CDK-specific utilities have been moved to @codeiqlabs/aws-cdk package
 
 // Configuration utilities (YAML loading, schema validation, etc.)

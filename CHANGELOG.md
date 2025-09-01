@@ -1,5 +1,91 @@
 # @codeiqlabs/aws-utils
 
+## 1.7.0
+
+### Major Changes
+
+#### Enhanced Unified Schema Generation with Discriminated Unions
+
+- **Discriminated Union Architecture**: Implemented `ManifestSchema` using
+  `z.discriminatedUnion('type', [...])` for automatic type detection and validation
+- **zod-to-json-schema Integration**: Leverages built-in composition features with enhanced options:
+  - `basePath: ['$defs']` for shared component organization
+  - `$refStrategy: 'relative'` for better reusability
+  - `target: 'jsonSchema2020-12'` for latest JSON Schema specification
+- **Automatic Schema Generation**: Single unified call generates comprehensive schemas with proper
+  composition
+
+#### JSON Schema Optimizations
+
+- **Centralized Primitives**: All reusable primitives (AwsAccountId, AwsRegion, ProjectName, etc.)
+  centralized in `$defs` section
+- **Enhanced Error Messages**: Comprehensive `errorMessage` properties with actionable guidance for
+  developers
+- **Strict Property Validation**:
+  - `additionalProperties: false` at variant level
+  - `unevaluatedProperties: false` at root level
+  - Recursive strict validation throughout schema tree
+- **Optimized Patterns**: Consistent validation patterns eliminate regex duplication
+
+#### TypeScript Type Generation Strategy
+
+- **Primary Approach**: Runtime-validated types using `z.infer<typeof SchemaName>` for direct
+  schema-to-type mapping
+- **Secondary Approach**: Optional JSON Schema type generation using `json-schema-to-typescript`
+- **Discriminated Union Types**: Both approaches produce equivalent, type-safe discriminated unions
+- **Exhaustive Type Checking**: Full TypeScript support with automatic type narrowing
+
+### Schema Architecture Improvements
+
+#### Zod Schema Refactoring
+
+- **BaseSchema Composition**: Uses `.extend()` method instead of `.merge()` for cleaner composition
+- **Field Consolidation**: Eliminated duplication by centralizing base fields in
+  `ManifestBaseSchema`
+- **Consistent Patterns**: All manifest schemas follow unified composition pattern
+
+#### Enhanced Primitives
+
+- **AWS Resource Identifiers**: `AwsAccountId`, `AwsRegion`, `AwsArn` with enhanced validation
+- **Project Identifiers**: `ProjectName`, `EnvCode` with strict formatting rules
+- **Contact Information**: `EmailAddress`, `CompanyName` with comprehensive validation
+- **AWS Properties**: `TagMap`, `VpcCidr` with AWS-compliant patterns
+
+### Code Quality Improvements
+
+#### Deprecated Code Removal
+
+- **Eliminated Duplicates**: Removed deprecated `AnyManifestSchema` and `AnyManifestConfig`
+- **Unified References**: All code now uses main `ManifestSchema` and `Manifest` type
+- **Consistent Validation**: Single source of truth for all manifest validation
+
+#### Build Optimizations
+
+- **Reduced Bundle Size**: Eliminated duplicate code and unused imports
+- **Enhanced Performance**: Optimized schema generation with better caching
+- **Improved Type Safety**: Stricter TypeScript compilation with no deprecated references
+
+### Documentation & Examples
+
+- **Type Generation Strategy**: Complete documentation with practical examples
+- **JSON Schema Optimizations**: Detailed implementation guidelines
+- **Migration Guidance**: Clear deprecation notices and upgrade paths
+- **Practical Examples**: Type-safe processing, validation patterns, and schema references
+
+### Technical Implementation
+
+- **Enhanced Generation Process**: Optimized zod-to-json-schema integration with comprehensive
+  primitive injection
+- **Generated Schema Quality**: 3,579+ lines of comprehensive validation rules with centralized
+  primitives
+- **Strict Validation**: Applied recursively throughout schema tree with enhanced error messages
+
+### Breaking Changes
+
+- **Removed**: Deprecated `AnyManifestSchema` and `AnyManifestConfig` types
+- **Migration**: Use `ManifestSchema` and `Manifest` instead
+- **Impact**: Minimal - most users already using recommended types
+
 ## 1.6.0
 
 ### Minor Changes
