@@ -1,132 +1,15 @@
 # @codeiqlabs/aws-utils
 
-## 1.8.0
+## 1.7.1
 
-### Minor Changes
+### Patch Changes
 
-- # Enhanced Schema Generation and Application Bootstrap Utilities v1.7.0
+- Update dev dependency to @codeiqlabs/eslint-prettier-config@^1.7.1
+  - Align with latest shared linting and formatting rules
+  - Regenerate package-lock.json to maintain dependency integrity
+  - No runtime or API changes included in this release
 
-  This release introduces comprehensive enhancements to schema generation and adds powerful
-  application bootstrap utilities, delivering significant improvements to developer experience and
-  infrastructure automation capabilities.
-
-  ## 🎯 Major Features
-
-  ### Enhanced Unified Schema Generation
-  - **Discriminated Union Architecture**: Implemented `ManifestSchema` using
-    `z.discriminatedUnion('type', [...])` for automatic type detection and validation
-  - **zod-to-json-schema Integration**: Leverages built-in composition features with enhanced
-    options:
-    - `basePath: ['$defs']` for shared component organization
-    - `$refStrategy: 'relative'` for better reusability
-    - `target: 'jsonSchema2020-12'` for latest JSON Schema specification
-  - **Automatic Schema Generation**: Single unified call generates comprehensive schemas with proper
-    composition
-
-  ### Application Bootstrap Utilities
-  - **ManifestConfigAdapter**: Automatic configuration transformation from manifest to stack
-    configurations
-  - **initializeApp Function**: Enhanced application initialization with comprehensive validation
-    and error handling
-  - **Application Module**: Complete application bootstrap utilities for CDK applications with type
-    safety
-  - **Configuration Transformation**: Standardized patterns for converting manifest data to
-    stack-ready configurations
-
-  ### JSON Schema Optimizations
-  - **Centralized Primitives**: All reusable primitives (AwsAccountId, AwsRegion, ProjectName, etc.)
-    centralized in `$defs` section
-  - **Enhanced Error Messages**: Comprehensive `errorMessage` properties with actionable guidance
-    for developers
-  - **Strict Property Validation**:
-    - `additionalProperties: false` at variant level
-    - `unevaluatedProperties: false` at root level
-    - Recursive strict validation throughout schema tree
-  - **Optimized Patterns**: Consistent validation patterns eliminate regex duplication
-
-  ### TypeScript Type Generation Strategy
-  - **Primary Approach**: Runtime-validated types using `z.infer<typeof SchemaName>` for direct
-    schema-to-type mapping
-  - **Secondary Approach**: Optional JSON Schema type generation using `json-schema-to-typescript`
-  - **Discriminated Union Types**: Both approaches produce equivalent, type-safe discriminated
-    unions
-  - **Exhaustive Type Checking**: Full TypeScript support with automatic type narrowing
-
-  ## 🏗️ Schema Architecture Improvements
-
-  ### Zod Schema Refactoring
-  - **BaseSchema Composition**: Uses `.extend()` method instead of `.merge()` for cleaner
-    composition
-  - **Field Consolidation**: Eliminated duplication by centralizing base fields in
-    `ManifestBaseSchema`
-  - **Consistent Patterns**: All manifest schemas follow unified composition pattern
-
-  ### Enhanced Primitives
-  - **AWS Resource Identifiers**: `AwsAccountId`, `AwsRegion`, `AwsArn` with enhanced validation
-  - **Project Identifiers**: `ProjectName`, `EnvCode` with strict formatting rules
-  - **Contact Information**: `EmailAddress`, `CompanyName` with comprehensive validation
-  - **AWS Properties**: `TagMap`, `VpcCidr` with AWS-compliant patterns
-
-  ## 🧹 Code Quality Improvements
-
-  ### Deprecated Code Removal
-  - **Eliminated Duplicates**: Removed deprecated `AnyManifestSchema` and `AnyManifestConfig`
-  - **Unified References**: All code now uses main `ManifestSchema` and `Manifest` type
-  - **Consistent Validation**: Single source of truth for all manifest validation
-
-  ### Build Optimizations
-  - **Reduced Bundle Size**: Eliminated duplicate code and unused imports
-  - **Enhanced Performance**: Optimized schema generation with better caching
-  - **Improved Type Safety**: Stricter TypeScript compilation with no deprecated references
-
-  ## 📚 Documentation & Examples
-
-  ### Comprehensive Guides
-  - **Type Generation Strategy**: Complete documentation with practical examples
-  - **JSON Schema Optimizations**: Detailed implementation guidelines
-  - **Migration Guidance**: Clear deprecation notices and upgrade paths
-
-  ### Practical Examples
-  - **Type-Safe Processing**: Discriminated union examples with exhaustive checking
-  - **Validation Patterns**: Runtime validation with detailed error handling
-  - **Schema References**: Proper usage of centralized primitives
-
-  ## 🔧 Technical Implementation
-
-  ### Enhanced Generation Process
-  1. **Zod to JSON Schema**: Uses `zodToJsonSchema` with optimized settings
-  2. **Primitive Injection**: Adds comprehensive `$defs` library
-  3. **Strict Validation**: Applies `applyStrictValidationRules` recursively
-  4. **Error Enhancement**: Adds detailed error messages throughout
-
-  ### Generated Schema Quality
-  - **3,579+ lines** of comprehensive validation rules
-  - **Centralized primitives** eliminate pattern duplication
-  - **Enhanced error messages** provide actionable guidance
-  - **Strict validation** prevents typos and unexpected properties
-
-  ## 🎉 Benefits Achieved
-
-  ### For Developers
-  - **Better IDE Support**: Rich tooltips and validation messages
-  - **Faster Debugging**: Clear error messages explain validation failures
-  - **Prevented Errors**: Strict validation catches typos and unexpected properties
-
-  ### For Runtime Validation
-  - **Comprehensive Coverage**: No unexpected properties can slip through
-  - **Actionable Errors**: Error messages guide users to correct solutions
-  - **Consistent Patterns**: Centralized primitives ensure uniform validation
-
-  ### For Maintenance
-  - **Single Source of Truth**: Primitives defined once, used everywhere
-  - **Easy Updates**: Change validation rules in one location
-  - **Reduced Duplication**: No repeated regex patterns or validation logic
-
-  This release establishes a robust, enterprise-grade foundation for schema-driven development
-  across all CodeIQLabs projects, ensuring excellent developer experience while maintaining strict
-  validation and comprehensive type safety.
-
-## 1.7.0 - 2025-09-01
+## 1.7.0
 
 ### Major Changes
 
@@ -269,7 +152,7 @@ infrastructure automation.
   1. `management` - AWS Organizations, Identity Center, cross-account management
   2. `shared-services` - Centralized services (monitoring, Transit Gateway)
   3. `workload` - Application-specific infrastructure deployment
-  4. `baseline` - Foundational infrastructure (VPC, security, compliance) ✨ **NEW**
+  4. `baseline` - Foundational infrastructure (VPC, security, compliance) **NEW**
 
   **Deployment Sequence:**
 
@@ -305,25 +188,25 @@ infrastructure automation.
 
   ## New Features
 
-  ### 🔧 CLI Tool for IntelliSense Setup
+  ### CLI Tool for IntelliSense Setup
   - Added `npx @codeiqlabs/aws-utils setup-intellisense` command
   - Auto-detects manifest types (management/workload/shared)
   - Configures both VS Code and IntelliJ IDEA automatically
   - Cross-platform compatibility (Windows, macOS, Linux)
 
-  ### 📋 JSON Schema Generation
+  ### JSON Schema Generation
   - Automated generation of JSON Schema files from Zod schemas
   - HTTP-based schema distribution for reliable cross-editor support
   - Real-time validation and error reporting
   - Contextual autocomplete suggestions
 
-  ### 🎯 Enhanced Schema Structure
+  ### Enhanced Schema Structure
   - Fixed schema hierarchy to match actual YAML structure
   - Properties now appear in correct contextual locations
   - Improved validation with detailed error messages
   - Support for nested property autocomplete
 
-  ### 🌐 HTTP Schema Distribution
+  ### HTTP Schema Distribution
   - Schemas hosted via GitHub raw URLs for universal access
   - Eliminates local file path resolution issues
   - Always up-to-date schemas without manual updates
