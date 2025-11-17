@@ -3,7 +3,7 @@ import { extname } from 'path';
 import { load } from 'js-yaml';
 import type { z } from 'zod';
 import { validateManifest } from '../schemas/validation/manifest-validators';
-import type { Manifest } from '../schemas';
+import type { UnifiedAppConfig } from '../schemas';
 
 /**
  * Generic configuration loader with auto-detection and comprehensive format support
@@ -28,8 +28,8 @@ export type ManifestFormat = 'yaml' | 'yml' | 'json';
  */
 export interface ManifestLoadResult {
   success: true;
-  data: Manifest;
-  type: 'management' | 'workload' | 'shared-services' | 'baseline';
+  data: UnifiedAppConfig;
+  type: 'unified';
   filePath: string;
   format: ManifestFormat;
 }
@@ -163,7 +163,10 @@ export function expandEnvironmentVariables(
  * Load and validate any manifest file with automatic type detection
  *
  * This is the main generic loader that automatically detects the manifest type
- * based on the 'type' field and validates against the appropriate schema.
+ * using multiple detection strategies:
+ * 1. Explicit 'type' field (preferred)
+ * 2. Structural analysis (fallback for auto-detection)
+ * 3. Content-based heuristics (legacy support)
  *
  * @param filePath - Path to the manifest file
  * @param options - Loading options
@@ -173,9 +176,10 @@ export function expandEnvironmentVariables(
  * ```typescript
  * import { loadManifest } from '@codeiqlabs/aws-utils/config';
  *
+ * // Auto-detects type from structure
  * const result = await loadManifest('./manifest.yaml');
  * if (result.success) {
- *   console.log(`Loaded ${result.type} manifest from ${result.filePath}`);
+ *   console.log(`Auto-detected ${result.type} manifest from ${result.filePath}`);
  *   // result.data is properly typed based on detected type
  * }
  * ```
@@ -222,17 +226,17 @@ export async function loadManifest(
       return {
         success: true,
         data: validationResult.data,
-        type: validationResult.type,
+        type: 'unified',
         filePath,
         format,
       };
     }
 
-    // Return unvalidated data (not recommended for production)
+    // Return unvalidated data
     return {
       success: true,
-      data: data as Manifest,
-      type: (data as any).type,
+      data: data as UnifiedAppConfig,
+      type: 'unified',
       filePath,
       format,
     };

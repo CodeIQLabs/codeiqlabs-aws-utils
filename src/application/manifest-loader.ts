@@ -7,22 +7,12 @@
  */
 
 import { loadManifest as coreLoadManifest } from '../config';
-import type {
-  LoadManifestOptions,
-  ManagementAppConfig,
-  WorkloadAppConfig,
-  SharedServicesAppConfig,
-  BaselineAppConfig,
-} from '../config';
+import type { LoadManifestOptions, UnifiedAppConfig } from '../config';
 
 /**
- * Union type for all supported manifest configurations
+ * Unified manifest configuration (replaces legacy manifest types)
  */
-export type ApplicationManifestConfig =
-  | ManagementAppConfig
-  | WorkloadAppConfig
-  | SharedServicesAppConfig
-  | BaselineAppConfig;
+export type ApplicationManifestConfig = UnifiedAppConfig;
 
 /**
  * Enhanced manifest loading result for applications
@@ -33,7 +23,7 @@ export interface ApplicationManifestResult {
   /** The loaded manifest data (if successful) */
   data?: ApplicationManifestConfig;
   /** The detected manifest type (if successful) */
-  type?: 'management' | 'workload' | 'shared-services' | 'baseline';
+  type?: 'management' | 'workload' | 'shared-services' | 'baseline' | 'unified';
   /** Error message (if failed) */
   error?: string;
   /** Detailed error information (if failed) */
@@ -46,12 +36,6 @@ export interface ApplicationManifestResult {
  * Options for application manifest initialization
  */
 export interface InitializeAppOptions extends LoadManifestOptions {
-  /**
-   * Expected manifest type for validation
-   * If provided, will validate that the loaded manifest matches this type
-   */
-  expectedType?: 'management' | 'workload' | 'shared-services' | 'baseline';
-
   /**
    * Whether to provide verbose error messages
    * Defaults to true for better developer experience
@@ -77,17 +61,13 @@ export interface InitializeAppOptions extends LoadManifestOptions {
  *   console.log(`Loaded ${result.type} manifest`);
  * }
  *
- * // With type validation
- * const result = initializeApp('src/manifest.yaml', {
- *   expectedType: 'management'
- * });
  * ```
  */
 export async function initializeApp(
   manifestPath: string = 'src/manifest.yaml',
   options: InitializeAppOptions = {},
 ): Promise<ApplicationManifestResult> {
-  const { expectedType, verbose = true, ...loadOptions } = options;
+  const { verbose = true, ...loadOptions } = options;
 
   try {
     // Load manifest using core loader
@@ -108,30 +88,19 @@ export async function initializeApp(
       };
     }
 
-    // Validate expected type if provided
-    if (expectedType && result.type !== expectedType) {
-      const availableTypes = ['management', 'workload', 'shared-services', 'baseline'];
-      return {
-        success: false,
-        error: verbose
-          ? `Manifest type mismatch: expected '${expectedType}' but got '${result.type}'. ` +
-            `Available types: ${availableTypes.join(', ')}`
-          : `Expected ${expectedType} manifest but got ${result.type}`,
-        filePath: manifestPath,
-      };
-    }
-
-    // Validate manifest data structure
-    const validationResult = validateManifestStructure(result.data, result.type);
-    if (!validationResult.valid) {
-      return {
-        success: false,
-        error: verbose
-          ? `Manifest validation failed: ${validationResult.error}`
-          : validationResult.error,
-        details: validationResult.details,
-        filePath: manifestPath,
-      };
+    // Validate manifest data structure (skip for unified - already validated by schema)
+    if (result.type !== 'unified') {
+      const validationResult = validateManifestStructure(result.data, result.type);
+      if (!validationResult.valid) {
+        return {
+          success: false,
+          error: verbose
+            ? `Manifest validation failed: ${validationResult.error}`
+            : validationResult.error,
+          details: validationResult.details,
+          filePath: manifestPath,
+        };
+      }
     }
 
     return {
@@ -160,7 +129,7 @@ export async function initializeApp(
  */
 function validateManifestStructure(
   data: any,
-  type: 'management' | 'workload' | 'shared-services' | 'baseline',
+  type: 'management' | 'workload' | 'shared-services' | 'baseline' | 'unified',
 ): { valid: boolean; error?: string; details?: any } {
   try {
     // Basic structure validation

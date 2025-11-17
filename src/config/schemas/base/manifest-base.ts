@@ -26,26 +26,21 @@ export const ManifestContextSchema = z.object({
 });
 
 /**
- * Management account reference schema
- * Used consistently across all manifest types to reference the management account
+ * Deployment target configuration
+ * Specifies where resources should be deployed
  */
-export const ManagementRefSchema = z.object({
+export const DeploymentTargetSchema = z.object({
   accountId: AwsAccountIdSchema,
   region: AwsRegionSchema,
-  environment: z.literal('mgmt'),
 });
 
 /**
  * Base schema that all manifest types must extend
- * Includes the core fields (project, company) and management reference
+ * Includes only the core fields (project, company)
  */
-export const ManifestBaseSchema = ManifestCoreSchema.merge(
-  z.object({
-    management: ManagementRefSchema,
-  }),
-);
+export const ManifestBaseSchema = ManifestCoreSchema;
 
 export type ManifestCore = z.infer<typeof ManifestCoreSchema>;
 export type ManifestContext = z.infer<typeof ManifestContextSchema>;
-export type ManagementRef = z.infer<typeof ManagementRefSchema>;
+export type DeploymentTarget = z.infer<typeof DeploymentTargetSchema>;
 export type ManifestBase = z.infer<typeof ManifestBaseSchema>;

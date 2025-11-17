@@ -41,19 +41,9 @@ export {
   ManagementConfigSchema,
   OrganizationSchema,
   IdentityCenterSchema,
-  ManagementAppConfigSchema,
-  WorkloadAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  BaselineAppConfigSchema,
+  // Unified application schema
+  UnifiedAppConfigSchema,
 } from './schemas';
-
-export {
-  // Application schema aliases
-  ManagementAppConfigSchema as ManagementApp,
-  WorkloadAppConfigSchema as WorkloadApp,
-  SharedServicesAppConfigSchema as SharedServicesApp,
-  BaselineAppConfigSchema as BaselineApp,
-} from './schemas/applications';
 
 // Most commonly used types
 export type {
@@ -66,8 +56,8 @@ export type {
   ManagementConfig,
   OrganizationConfig,
   IdentityCenterConfig,
-  ManagementAppConfig,
-  WorkloadAppConfig,
-  SharedServicesAppConfig,
-  BaselineAppConfig,
+  // Unified application types
+  UnifiedAppConfig,
+  DeploymentTarget,
+  EnvironmentConfig,
 } from './schemas';

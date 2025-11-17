@@ -43,12 +43,13 @@ export {
   ProjectNameSchema,
   CompanyNameSchema,
   TagsSchema,
+  RequiredTagsSchema,
 } from './common';
 
 export {
   ManifestCoreSchema,
   ManifestContextSchema,
-  ManagementRefSchema,
+  DeploymentTargetSchema,
   ManifestBaseSchema,
 } from './manifest-base';
 
@@ -78,6 +79,12 @@ export type {
   ProjectName,
   CompanyName,
   Tags,
+  RequiredTags,
 } from './common';
 
-export type { ManifestCore, ManifestContext, ManagementRef, ManifestBase } from './manifest-base';
+export type {
+  ManifestCore,
+  ManifestContext,
+  DeploymentTarget,
+  ManifestBase,
+} from './manifest-base';

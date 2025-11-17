@@ -83,11 +83,6 @@
       "import": "./dist/esm/config/utils/index.js",
       "require": "./dist/cjs/config/utils/index.js"
     },
-    "./cdk": {
-      "types": "./dist/cdk/index.d.ts",
-      "import": "./dist/esm/cdk/index.js",
-      "require": "./dist/cjs/cdk/index.js"
-    },
     "./helpers": {
       "types": "./dist/helpers/index.d.ts",
       "import": "./dist/esm/helpers/index.js",

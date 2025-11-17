@@ -177,38 +177,20 @@ function createOptimizedPrimitives(): Record<string, any> {
       },
     },
 
-    // Management Reference
-    ManagementRef: {
-      type: 'object',
-      properties: {
-        accountId: { $ref: '#/$defs/AwsAccountId' },
-        region: { $ref: '#/$defs/AwsRegion' },
-        environment: { const: 'mgmt' },
-      },
-      required: ['accountId', 'region', 'environment'],
-      additionalProperties: false,
-      description: 'Reference to the management account configuration',
-      errorMessage: {
-        required: 'Management reference must include accountId, region, and environment',
-        additionalProperties: 'Management reference cannot contain additional properties',
-      },
-    },
-
     // Base Manifest Schema
     BaseManifest: {
       type: 'object',
       properties: {
         project: { $ref: '#/$defs/ProjectName' },
         company: { $ref: '#/$defs/CompanyName' },
-        management: { $ref: '#/$defs/ManagementRef' },
       },
-      required: ['project', 'company', 'management'],
+      required: ['project', 'company'],
       additionalProperties: false,
       description: 'Base properties required for all manifest types',
       errorMessage: {
-        required: 'All manifests must include project, company, and management properties',
+        required: 'All manifests must include project and company properties',
         additionalProperties:
-          'Base manifest cannot contain additional properties beyond project, company, and management',
+          'Base manifest cannot contain additional properties beyond project and company',
       },
     },
   };

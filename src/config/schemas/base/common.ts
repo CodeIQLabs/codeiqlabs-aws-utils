@@ -25,12 +25,24 @@ export const ProjectNameSchema = z.string().min(1, 'Project name cannot be empty
 export const CompanyNameSchema = z.string().min(1, 'Company name cannot be empty');
 
 /**
- * Tags schema - record of string key-value pairs
+ * Tags schema - record of string key-value pairs (optional)
  */
 export const TagsSchema = z.record(z.string()).optional();
+
+/**
+ * Required tags schema - requires Owner and ManagedBy tags
+ * Used for resources that must have these tags for compliance and tracking
+ */
+export const RequiredTagsSchema = z
+  .object({
+    Owner: z.string().min(1, 'Owner tag is required'),
+    ManagedBy: z.string().min(1, 'ManagedBy tag is required'),
+  })
+  .catchall(z.string()); // Allow additional tags beyond Owner and ManagedBy
 
 // Export types for TypeScript usage
 export type Environment = z.infer<typeof EnvironmentSchema>;
 export type ProjectName = z.infer<typeof ProjectNameSchema>;
 export type CompanyName = z.infer<typeof CompanyNameSchema>;
 export type Tags = z.infer<typeof TagsSchema>;
+export type RequiredTags = z.infer<typeof RequiredTagsSchema>;

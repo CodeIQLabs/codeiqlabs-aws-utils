@@ -14,6 +14,7 @@ export * from './iam';
 export * from './github-oidc';
 export * from './deployment-permissions';
 export * from './projects';
+export * from './domains';
 
 /**
  * Convenience re-exports for commonly used resource schemas
@@ -62,6 +63,16 @@ export {
   ProjectEnvironmentSchema,
   ProjectSchema,
 } from './projects';
+
+export {
+  // Domain management schemas
+  DomainManagementSchema,
+  RegisteredDomainSchema,
+  DomainDelegationSchema,
+  CertificateConfigSchema,
+  HostedZoneIdSchema,
+  DomainNameSchema,
+} from './domains';
 
 export {
   // Networking schemas
@@ -143,6 +154,19 @@ export type {
   ProjectEnvironment,
   Project,
 } from './projects';
+
+export type {
+  // Domain management types
+  DomainManagement,
+  RegisteredDomain,
+  DomainDelegation,
+  CertificateConfig,
+  HostedZoneId,
+  DomainName,
+  CertificateKeyAlgorithm,
+  CertificateValidationMethod,
+  DomainRegistrar,
+} from './domains';
 
 export type {
   // Networking types

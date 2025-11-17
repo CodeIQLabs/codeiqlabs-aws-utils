@@ -28,8 +28,10 @@ export {
 
 // Export commonly used configuration types
 export type {
-  ManagementAppConfig,
-  WorkloadAppConfig,
+  // Unified application config
+  UnifiedAppConfig,
+  DeploymentTarget,
+  EnvironmentConfig,
   ManagementConfig,
   OrganizationConfig,
   IdentityCenterConfig,
@@ -45,6 +47,7 @@ export type {
 export type {
   PermissionSetConfig,
   SSOAssignmentConfig,
+  UserConfig,
   OrganizationalUnitConfig,
   ConfigMode,
   AccountConfig,

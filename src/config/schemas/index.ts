@@ -36,7 +36,6 @@ export {
   TagsSchema,
   ManifestCoreSchema,
   ManifestContextSchema,
-  ManagementRefSchema,
   ManifestBaseSchema,
 } from './base';
 
@@ -53,6 +52,7 @@ export {
   OrganizationSchema,
   ServiceControlPolicySchema,
   // Identity Center schemas
+  UserConfigSchema,
   PermissionSetConfigSchema,
   SSOAssignmentConfigSchema,
   IdentityCenterSchema,
@@ -80,31 +80,22 @@ export {
   ConfigServiceConfigSchema,
   GuardDutyConfigSchema,
   SecurityHubConfigSchema,
+  // Domain management schemas
+  DomainManagementSchema,
+  RegisteredDomainSchema,
+  DomainDelegationSchema,
+  CertificateConfigSchema,
 } from './resources';
 
+// NEW: Unified application schema (recommended)
 export {
-  ManagementAppConfigSchema,
-  WorkloadAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  BaselineAppConfigSchema,
+  UnifiedAppConfigSchema,
+  validateUnifiedAppConfig,
+  safeValidateUnifiedAppConfig,
 } from './applications';
 
-// Import for discriminated union
-import { z } from 'zod';
-import {
-  ManagementAppConfigSchema,
-  WorkloadAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  BaselineAppConfigSchema,
-} from './applications';
-
-// Discriminated union for unified schema generation
-export const ManifestSchema = z.discriminatedUnion('type', [
-  ManagementAppConfigSchema,
-  SharedServicesAppConfigSchema,
-  WorkloadAppConfigSchema,
-  BaselineAppConfigSchema,
-]);
+// Unified manifest schema (replaces legacy discriminated union)
+export { UnifiedAppConfigSchema as ManifestSchema } from './applications';
 
 /**
  * Convenience re-exports for commonly used types
@@ -130,7 +121,6 @@ export type {
   Tags,
   ManifestCore,
   ManifestContext,
-  ManagementRef,
   ManifestBase,
 } from './base';
 
@@ -147,6 +137,7 @@ export type {
   OrganizationConfig,
   ServiceControlPolicyConfig,
   // Identity Center types
+  UserConfig,
   PermissionSetConfig,
   SSOAssignmentConfig,
   IdentityCenterConfig,
@@ -178,13 +169,5 @@ export type {
   SecurityHubConfig,
 } from './resources';
 
-// Application types
-export type {
-  ManagementAppConfig,
-  WorkloadAppConfig,
-  SharedServicesAppConfig,
-  BaselineAppConfig,
-} from './applications';
-
-// Discriminated union type
-export type Manifest = z.infer<typeof ManifestSchema>;
+// Unified application types
+export type { UnifiedAppConfig, DeploymentTarget, EnvironmentConfig } from './applications';

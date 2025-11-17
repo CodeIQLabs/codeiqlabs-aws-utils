@@ -4,6 +4,7 @@ import {
   NameSchema,
   DescriptionSchema,
   TagsSchema,
+  RequiredTagsSchema,
   ISO8601DurationSchema,
   KeySchema,
   AwsAccountIdSchema,
@@ -46,6 +47,31 @@ export const PrincipalIdSchema = z
     /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/,
     'Invalid Identity Center principal ID format (expected UUID)',
   );
+
+/**
+ * Identity Store ID validation
+ */
+export const IdentityStoreIdSchema = z
+  .string()
+  .regex(/^d-[a-z0-9]{10}$/, 'Invalid Identity Store ID format (expected d-xxxxxxxxxx)');
+
+/**
+ * Identity Center User configuration schema
+ *
+ * Note: AWS CloudFormation does not support creating Identity Center users.
+ * This schema is used for mapping user keys to existing user IDs for assignments.
+ * Users must be created manually in AWS Identity Center first.
+ *
+ * Fields:
+ * - key: Internal reference key used in assignments (e.g., principalKey: "alif")
+ * - userId: The actual AWS Identity Center User ID (must be obtained from AWS)
+ * - userName: Optional - for documentation/readability only
+ */
+export const UserConfigSchema = z.object({
+  key: KeySchema, // Internal reference key for assignments
+  userId: PrincipalIdSchema, // Existing user ID from Identity Center (required)
+  userName: z.string().min(1).max(128).optional(), // Username for documentation/readability only
+});
 
 /**
  * Permission Set configuration schema
@@ -98,15 +124,34 @@ export const PermissionSetConfigSchema = z.object({
 
 /**
  * SSO Assignment configuration schema
+ *
+ * Supports two modes for target accounts:
+ * 1. Single target: Use `targetKey` for one account
+ * 2. Multiple targets: Use `targetKeys` for multiple accounts (flattened syntax)
  */
-export const SSOAssignmentConfigSchema = z.object({
-  principalType: z.enum(['USER', 'GROUP']),
-  principalId: PrincipalIdSchema,
-  permissionSetName: NameSchema, // References permission set by name
-  targetType: z.literal('AWS_ACCOUNT'),
-  targetKey: KeySchema, // Account key (resolved to account ID later)
-  targetAccountId: AwsAccountIdSchema.optional(), // Direct account ID
-});
+export const SSOAssignmentConfigSchema = z
+  .object({
+    principalType: z.enum(['USER', 'GROUP']),
+    principalId: PrincipalIdSchema.optional(), // Optional: can use principalKey instead
+    principalKey: KeySchema.optional(), // Optional: references user/group by key
+    permissionSetName: NameSchema, // References permission set by name
+    targetType: z.literal('AWS_ACCOUNT'),
+    targetKey: KeySchema.optional(), // Single account key (use this OR targetKeys)
+    targetKeys: z.array(KeySchema).optional(), // Multiple account keys (use this OR targetKey)
+    targetAccountId: AwsAccountIdSchema.optional(), // Direct account ID (only with targetKey)
+  })
+  .refine((data) => data.principalId || data.principalKey, {
+    message: 'Either principalId or principalKey must be provided',
+    path: ['principalId', 'principalKey'],
+  })
+  .refine((data) => data.targetKey || data.targetKeys, {
+    message: 'Either targetKey or targetKeys must be provided',
+    path: ['targetKey', 'targetKeys'],
+  })
+  .refine((data) => !(data.targetKey && data.targetKeys), {
+    message: 'Cannot specify both targetKey and targetKeys - use one or the other',
+    path: ['targetKey', 'targetKeys'],
+  });
 
 /**
  * Identity Source configuration
@@ -167,18 +212,22 @@ export const TrustedTokenIssuerSchema = z.object({
 export const IdentityCenterSchema = z.object({
   enabled: BooleanSchema,
   instanceArn: IdentityCenterInstanceArnSchema,
+  identityStoreId: IdentityStoreIdSchema.optional(), // Required for user creation
   identitySource: IdentitySourceSchema.optional(),
+  users: z.array(UserConfigSchema).optional(), // Users to create
   permissionSets: z.array(PermissionSetConfigSchema),
   assignments: z.array(SSOAssignmentConfigSchema),
   applications: z.array(ApplicationConfigSchema).optional(),
   trustedTokenIssuers: z.array(TrustedTokenIssuerSchema).optional(),
-  tags: TagsSchema,
+  tags: RequiredTagsSchema, // Owner and ManagedBy are required
 });
 
 // Export types for TypeScript usage
 export type IdentityCenterInstanceArn = z.infer<typeof IdentityCenterInstanceArnSchema>;
+export type IdentityStoreId = z.infer<typeof IdentityStoreIdSchema>;
 export type PermissionSetArn = z.infer<typeof PermissionSetArnSchema>;
 export type PrincipalId = z.infer<typeof PrincipalIdSchema>;
+export type UserConfig = z.infer<typeof UserConfigSchema>;
 export type PermissionSetConfig = z.infer<typeof PermissionSetConfigSchema>;
 export type SSOAssignmentConfig = z.infer<typeof SSOAssignmentConfigSchema>;
 export type IdentitySource = z.infer<typeof IdentitySourceSchema>;

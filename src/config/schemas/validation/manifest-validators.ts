@@ -6,10 +6,10 @@
  */
 
 import { z } from 'zod';
-import { ManifestSchema } from '../index';
+import { ManifestSchema, UnifiedAppConfigSchema } from '../index';
 
 /**
- * Validates any manifest file and returns the appropriate typed result
+ * Validates any manifest file with support for both unified and legacy formats
  *
  * @param data - The manifest data to validate
  * @returns Success result with typed data and detected type, or error result
@@ -17,13 +17,22 @@ import { ManifestSchema } from '../index';
 export function validateManifest(data: unknown):
   | {
       success: true;
-      data: z.infer<typeof ManifestSchema>;
-      type: 'management' | 'workload' | 'shared-services' | 'baseline';
+      data: z.infer<typeof ManifestSchema> | z.infer<typeof UnifiedAppConfigSchema>;
+      type: 'management' | 'workload' | 'shared-services' | 'baseline' | 'unified';
     }
   | { success: false; error: z.ZodError } {
-  const result = ManifestSchema.safeParse(data);
-  if (result.success) {
-    return { success: true, data: result.data, type: result.data.type };
+  // Try unified schema first (no type field required)
+  const unifiedResult = UnifiedAppConfigSchema.safeParse(data);
+  if (unifiedResult.success) {
+    return { success: true, data: unifiedResult.data, type: 'unified' };
   }
-  return { success: false, error: result.error };
+
+  // Fall back to legacy discriminated union (requires type field)
+  const legacyResult = ManifestSchema.safeParse(data);
+  if (legacyResult.success) {
+    return { success: true, data: legacyResult.data, type: legacyResult.data.type };
+  }
+
+  // Return the unified schema error (more helpful for new manifests)
+  return { success: false, error: unifiedResult.error };
 }
