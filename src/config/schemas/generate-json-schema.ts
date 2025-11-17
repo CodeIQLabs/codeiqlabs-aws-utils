@@ -5,10 +5,10 @@ import { join } from 'path';
 import { ManifestSchema } from './index';
 
 /**
- * Generate JSON Schema files - now generates thin shims that reference the unified schema
+ * Generate JSON Schema files for the unified manifest schema
  */
 export function generateJsonSchemas(): void {
-  console.log('🔧 Generating enhanced unified JSON Schema using discriminated union...');
+  console.log('Generating unified JSON Schema...');
 
   // Create schemas directory
   const schemasDir = join(process.cwd(), 'schemas');
@@ -16,23 +16,20 @@ export function generateJsonSchemas(): void {
     mkdirSync(schemasDir, { recursive: true });
   }
 
-  // Generate unified schema using discriminated union with enhanced composition
-  generateEnhancedUnifiedSchema(schemasDir);
+  // Generate unified schema
+  generateUnifiedSchema(schemasDir);
 
-  // Generate thin shim files that reference the unified schema
-  generateEnhancedShimFiles(schemasDir);
-
-  console.log('🎉 Enhanced unified JSON Schema generation complete!');
+  console.log('🎉 Unified JSON Schema generation complete!');
 }
 
 /**
- * Generate enhanced unified schema using zod-to-json-schema's discriminated union support
+ * Generate unified schema from the UnifiedAppConfigSchema
  */
-function generateEnhancedUnifiedSchema(schemasDir: string): void {
-  console.log('📋 Generating enhanced unified schema using discriminated union...');
+function generateUnifiedSchema(schemasDir: string): void {
+  console.log('📋 Generating unified manifest schema...');
 
   try {
-    // Generate unified schema using discriminated union with enhanced composition
+    // Generate unified schema from Zod schema
     const unifiedSchema = zodToJsonSchema(ManifestSchema, {
       name: 'CodeIQLabsAwsManifest',
       basePath: ['$defs'], // Place shared components under $defs
@@ -48,7 +45,7 @@ function generateEnhancedUnifiedSchema(schemasDir: string): void {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       title: 'CodeIQLabs AWS Manifest (Unified)',
       description:
-        'Unified schema for all CodeIQLabs manifest types with discriminated union. Provides strict validation with enhanced error messages for better developer experience.',
+        'Unified schema for CodeIQLabs AWS manifest files. Supports component-based configuration where any component can be deployed to any account. No manifestType field - components define what gets deployed.',
       ...unifiedSchema,
       $defs: {
         ...createOptimizedPrimitives(),
@@ -58,16 +55,16 @@ function generateEnhancedUnifiedSchema(schemasDir: string): void {
       unevaluatedProperties: false,
     };
 
-    // Apply strict validation enhancements to all manifest variants
+    // Apply strict validation enhancements
     const optimizedSchema = applyStrictValidationRules(enhancedSchema);
 
     // Write optimized unified schema
     const unifiedPath = join(schemasDir, 'manifest.schema.json');
     writeFileSync(unifiedPath, JSON.stringify(optimizedSchema, null, 2));
 
-    console.log('✅ Generated enhanced unified manifest.schema.json');
+    console.log('✅ Generated unified manifest.schema.json');
   } catch (error) {
-    console.error('❌ Failed to generate enhanced unified schema:', error);
+    console.error('❌ Failed to generate unified schema:', error);
     throw error;
   }
 }
@@ -269,73 +266,6 @@ function applyStrictValidationRules(schema: any): any {
   enhanceSchemaNode(optimizedSchema);
 
   return optimizedSchema;
-}
-
-/**
- * Get the index of a manifest type in the discriminated union
- */
-function getManifestIndex(defRef: string): number {
-  const manifestOrder = [
-    'ManagementManifest',
-    'SharedServicesManifest',
-    'WorkloadManifest',
-    'BaselineManifest',
-  ];
-  return manifestOrder.indexOf(defRef);
-}
-
-/**
- * Generate enhanced thin shim files that reference the unified schema
- */
-function generateEnhancedShimFiles(schemasDir: string): void {
-  console.log('📋 Generating enhanced thin shim files...');
-
-  // Define shim configurations
-  const shimConfigs = [
-    {
-      filename: 'management-manifest',
-      title: 'CodeIQLabs Management Manifest',
-      description: 'Schema for CodeIQLabs management account manifest files',
-      defRef: 'ManagementManifest',
-    },
-    {
-      filename: 'workload-manifest',
-      title: 'CodeIQLabs Workload Manifest',
-      description: 'Schema for CodeIQLabs workload account manifest files',
-      defRef: 'WorkloadManifest',
-    },
-    {
-      filename: 'shared-services-manifest',
-      title: 'CodeIQLabs Shared Services Manifest',
-      description: 'Schema for CodeIQLabs shared services account manifest files',
-      defRef: 'SharedServicesManifest',
-    },
-    {
-      filename: 'baseline-manifest',
-      title: 'CodeIQLabs Baseline Manifest',
-      description: 'Schema for CodeIQLabs baseline account manifest files',
-      defRef: 'BaselineManifest',
-    },
-  ];
-
-  shimConfigs.forEach(({ filename, title, description, defRef }) => {
-    try {
-      const shimSchema = {
-        $schema: 'https://json-schema.org/draft/2020-12/schema',
-        $id: `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/${filename}.schema.json`,
-        title,
-        description,
-        $ref: `https://schemas.codeiqlabs.dev/aws/manifest.schema.json#/definitions/CodeIQLabsAwsManifest/anyOf/${getManifestIndex(defRef)}`,
-      };
-
-      const outputPath = join(schemasDir, `${filename}.schema.json`);
-      writeFileSync(outputPath, JSON.stringify(shimSchema, null, 2));
-
-      console.log(`✅ Generated ${filename}.schema.json shim`);
-    } catch (error) {
-      console.error(`❌ Failed to generate shim for ${filename}:`, error);
-    }
-  });
 }
 
 // CLI execution - always run when this file is executed directly

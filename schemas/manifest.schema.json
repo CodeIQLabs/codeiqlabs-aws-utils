@@ -2,7 +2,7 @@
   "$id": "https://schemas.codeiqlabs.dev/aws/manifest.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "CodeIQLabs AWS Manifest (Unified)",
-  "description": "Unified schema for all CodeIQLabs manifest types with discriminated union. Provides strict validation with enhanced error messages for better developer experience.",
+  "description": "Unified schema for CodeIQLabs AWS manifest files. Supports component-based configuration where any component can be deployed to any account. No manifestType field - components define what gets deployed.",
   "$ref": "definitions/CodeIQLabsAwsManifest",
   "definitions": {
     "CodeIQLabsAwsManifest": {

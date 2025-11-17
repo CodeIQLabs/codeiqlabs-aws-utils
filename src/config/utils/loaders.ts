@@ -21,7 +21,7 @@ import type { UnifiedAppConfig } from '../schemas';
 /**
  * Supported file formats for manifest files
  */
-export type ManifestFormat = 'yaml' | 'yml' | 'json';
+export type ManifestFormat = 'yaml' | 'yml';
 
 /**
  * Result of loading and validating a manifest file with auto-detection
@@ -114,8 +114,6 @@ export function loadConfig<T>(path: string, schema: z.ZodType<T>): T {
  */
 function parseFileContent(content: string, format: ManifestFormat): unknown {
   switch (format) {
-    case 'json':
-      return JSON.parse(content);
     case 'yaml':
     case 'yml':
       return load(content);
@@ -130,7 +128,6 @@ function parseFileContent(content: string, format: ManifestFormat): unknown {
 function getFileFormat(filePath: string): ManifestFormat {
   const ext = extname(filePath).toLowerCase().slice(1);
   if (ext === 'yaml' || ext === 'yml') return ext as ManifestFormat;
-  if (ext === 'json') return 'json';
   throw new Error(`Unsupported file extension: ${ext}`);
 }
 

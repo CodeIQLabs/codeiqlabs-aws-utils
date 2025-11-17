@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json",
-  "title": "CodeIQLabs Workload Manifest",
-  "description": "Schema for CodeIQLabs workload account manifest files",
-  "$ref": "https://schemas.codeiqlabs.dev/aws/manifest.schema.json#/definitions/CodeIQLabsAwsManifest/anyOf/2"
-}
