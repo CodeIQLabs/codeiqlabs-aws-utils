@@ -1,539 +1,316 @@
-# @codeiqlabs/aws-utils
+# CodeIQLabs AWS Utils (@codeiqlabs/aws-utils)
 
-**Standardized AWS utilities for enterprise projects** - A comprehensive TypeScript library
-providing resource naming, configuration validation, environment management, and tagging utilities
-for consistent AWS infrastructure deployment across any organization's projects.
+**Framework-agnostic AWS utilities for naming, tagging, manifest validation, and schema-driven configuration.**
 
-[![GitHub package version](https://img.shields.io/github/package-json/v/CodeIQLabs/codeiqlabs-aws-utils?label=version)](https://github.com/CodeIQLabs/codeiqlabs-aws-utils/packages)
+[![npm version](https://img.shields.io/npm/v/@codeiqlabs/aws-utils.svg)](https://www.npmjs.com/package/@codeiqlabs/aws-utils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
-[![Node](https://img.shields.io/badge/Node-18.0+-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.18-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.4%2B-blue.svg)](https://www.typescriptlang.org/)
+[![Module Support](https://img.shields.io/badge/modules-ESM%20%2B%20CJS-brightgreen.svg)](https://nodejs.org/api/esm.html)
 
-## Key Features
+---
 
-- **IntelliSense Setup**: Automated IDE configuration for manifest files with autocomplete,
-  validation, and documentation
-- **Resource Naming**: Consistent naming patterns across all AWS resources with automatic validation
-- **Configuration Validation**: Comprehensive Zod schemas for validating YAML configuration files
-- **Environment Management**: Standardized environment handling (nprd, prod, mgmt, shared, pprd)
-- **Tagging Utilities**: Automated tagging for compliance and resource management
-- **Helper Functions**: Common utilities for environment variables, validation, and AWS operations
-- **Dual Module Support**: Full ESM and CommonJS compatibility with modern tsup bundler
+## Overview
 
-## Installation
+`@codeiqlabs/aws-utils` is a **framework-agnostic** utility library designed to standardize AWS infrastructure code across CodeIQLabs projects. It provides:
 
-```bash
-# Using npm
-npm install @codeiqlabs/aws-utils
+- **Schema-driven configuration** with Zod validation for AWS manifests (accounts, organizations, identity center, networking, domains, projects)
+- **Standardized resource naming** for stacks, S3 buckets, IAM roles, SSM parameters, and domains
+- **Consistent tagging** with environment-aware tag generation
+- **Environment variable helpers** with strict validation
+- **CLI tools** for IDE IntelliSense setup with JSON Schema support
+- **Dual module support** (ESM + CommonJS) for maximum compatibility
 
-# Using yarn
-yarn add @codeiqlabs/aws-utils
+Used as the **shared foundation** for other CodeIQLabs infrastructure packages like [`@codeiqlabs/aws-cdk`](https://github.com/CodeIQLabs/codeiqlabs-aws-cdk).
 
-# Using pnpm
-pnpm add @codeiqlabs/aws-utils
-```
+---
 
-**Includes CLI Tools**: The package includes command-line tools for IntelliSense setup and other
-utilities. After installation, you can use `npx @codeiqlabs/aws-utils --help` to see available
-commands.
+## Features
 
-## Package Relationship
+### 📋 Configuration & Manifest Utilities
 
-This package (`@codeiqlabs/aws-utils`) provides **framework-agnostic utilities** for AWS
-infrastructure projects:
+- **Load YAML config/manifest files** with `loadConfig()`, `loadManifest()`, `initializeApp()`
+- **Expand `${VAR}` placeholders** from environment variables automatically
+- **Validate configs** with Zod schemas for:
+  - AWS accounts and organizations
+  - Identity Center (users, groups, permission sets, assignments)
+  - Networking (VPCs, subnets, security groups)
+  - Security and compliance settings
+  - Domain management and DNS
+  - Project and environment configurations
+- **Unified `UnifiedAppConfig` schema** supporting:
+  - Single-account and multi-environment deployments
+  - Component flags: `organization`, `identityCenter`, `domains`, `staticHosting`, `networking`, `deploymentPermissions`
+  - Flexible `deployment` + `environments` structure
 
-- Configuration loading and validation
-- Resource naming conventions
-- Tag generation
-- Environment management
-- JSON Schema validation
+### 🏷️ Naming Utilities
 
-For **CDK-specific functionality**, use `@codeiqlabs/aws-cdk` which builds on top of aws-utils:
+Standardized naming functions for AWS resources:
 
-- CDK construct integration
-- Stack and stage management
-- CDK-specific tagging functions (`applyStandardTags`)
-- Automatic CDK application bootstrap
+- **`generateStackName()`** - CDK stack names: `MyApp-prod-API-Stack`
+- **`generateExportName()`** - CloudFormation exports: `myapp-prod-vpc-id`
+- **`generateResourceName()`** - Generic resources: `myapp-prod-lambda-function`
+- **`generateIAMRoleName()`** - IAM roles: `MyApp-prod-DeploymentRole`
+- **`generateS3BucketName()`** - S3 buckets with stable suffixes: `myapp-prod-artifacts-abc123`
+- **`generateSSMParameterName()`** - SSM parameters: `/MyApp/prod/config/api-key`
+- **`generateDomainName()`** - Domain names with subdomains: `api.example.com`
+- **`generateStageName()`** - CDK stage names with environment validation: `MyApp-prod`
 
-## Quick Start
-
-### Recommended: Use with CDK Applications
-
-```typescript
-// For CDK applications, use the auto-detection factory from @codeiqlabs/aws-cdk
-// This example shows how external clients typically consume aws-utils via aws-cdk
-import { createAutoApp } from '@codeiqlabs/aws-cdk';
-
-// Automatically loads manifest, detects type, and creates appropriate stages
-createAutoApp().then((app) => app.synth());
-
-// Or for specific manifest types with validation:
-import { createManagementApp, createWorkloadApp } from '@codeiqlabs/aws-cdk';
-
-// Management account infrastructure
-createManagementApp().then((app) => app.synth());
-
-// Workload account infrastructure
-createWorkloadApp().then((app) => app.synth());
-```
-
-### Advanced: Direct Manifest Loading
-
-```typescript
-import { loadManifest } from '@codeiqlabs/aws-utils';
-
-// Load and validate any manifest with auto-detection (unified schema)
-const result = await loadManifest('./manifest.yaml');
-if (result.success) {
-  console.log(`Loaded ${result.type} manifest`);
-  // result.data is UnifiedAppConfig with type-safe access
-  console.log(`Project: ${result.data.project}`);
-}
-```
-
-## IntelliSense Setup for Manifest Files
-
-Get **autocomplete, validation, and hover documentation** for your manifest.yaml files in both VS
-Code and IntelliJ IDEA with zero configuration!
-
-### Quick Setup
-
-```bash
-# 1. Install the package
-npm install @codeiqlabs/aws-utils
-
-# 2. Set up IntelliSense (one command!)
-npx @codeiqlabs/aws-utils setup-intellisense
-
-# 3. Restart your editor and enjoy full IntelliSense support!
-```
-
-### What You Get
-
-- **Autocomplete**: Smart suggestions for all manifest properties
-- **Real-time Validation**: Instant error highlighting and detailed messages
-- **Hover Documentation**: Comprehensive field descriptions and examples
-- **Contextual Suggestions**: Properties appear in the correct YAML hierarchy
-- **Always Up-to-date**: Schemas automatically sync with package updates
-
-### CLI Options
-
-```bash
-# Auto-detect and set up all manifest files
-npx @codeiqlabs/aws-utils setup-intellisense
-
-# Set up specific manifest file
-npx @codeiqlabs/aws-utils setup-intellisense --manifest=src/manifest.yaml
-
-# Force specific manifest type
-npx @codeiqlabs/aws-utils setup-intellisense --type=management
-
-# Quiet mode (minimal output)
-npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
-
-# Show help
-npx @codeiqlabs/aws-utils setup-intellisense --help
-```
-
-## JSON Schema Integration
-
-The aws-utils package provides comprehensive JSON schemas for manifest validation and IDE
-integration. These schemas are hosted on GitHub and automatically updated with each package release.
-
-### Available Schema URLs
-
-All schemas are hosted at:
-`https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/`
-
-- **Unified Schema**: `manifest.schema.json` - Complete schema with discriminated unions for all
-  manifest types
-- **Management Account**: `management-manifest.schema.json` - Schema for management account
-  manifests
-- **Workload Account**: `workload-manifest.schema.json` - Schema for workload account manifests
-- **Shared Services**: `shared-services-manifest.schema.json` - Schema for shared services manifests
-- **Baseline**: `baseline-manifest.schema.json` - Schema for baseline account manifests
-
-### IDE Configuration
-
-#### VS Code Configuration
-
-**Option 1: Automatic Setup (Recommended)**
-
-```bash
-npx @codeiqlabs/aws-utils setup-intellisense
-```
-
-**Option 2: Manual Configuration**
-
-Add to your `.vscode/settings.json`:
-
-```json
-{
-  "yaml.schemas": {
-    "https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json": [
-      "**/manifest.yaml",
-      "**/manifest.yml"
-    ]
-  }
-}
-```
-
-#### IntelliJ IDEA Configuration
-
-**Option 1: Automatic Setup (Recommended)**
-
-```bash
-npx @codeiqlabs/aws-utils setup-intellisense
-```
-
-**Option 2: Manual Configuration**
-
-1. Open **Settings** → **Languages & Frameworks** → **Schemas and DTDs** → **JSON Schema Mappings**
-2. Click **+** to add a new mapping
-3. Set **Schema file or URL**:
-   `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json`
-4. Set **Schema version**: `JSON Schema version 7`
-5. Add file pattern: `**/manifest.yaml` and `**/manifest.yml`
-
-### Schema Validation Benefits
-
-With proper schema integration, you get:
-
-- **Real-time validation** as you type
-- **Autocomplete suggestions** for all properties
-- **Hover documentation** with field descriptions
-- **Error highlighting** with detailed messages
-- **Type checking** for values and formats
-- **Enum validation** for predefined values
-
-## Resource Naming and Tagging
-
-The aws-utils package provides comprehensive utilities for consistent AWS resource naming and
-tagging across all CodeIQLabs projects.
-
-### ResourceNaming Class
-
-The `ResourceNaming` class ensures consistent naming patterns across all AWS resources using the
-format: `{project}-{environment}-{resourceName}`.
-
-#### Basic Usage
+**Convenience class:**
 
 ```typescript
 import { ResourceNaming } from '@codeiqlabs/aws-utils';
 
-// Initialize with naming configuration object
 const naming = new ResourceNaming({
-  project: 'MyProject',
+  project: 'MyApp',
   environment: 'prod',
+  region: 'us-east-1',
+  accountId: '123456789012',
 });
 
-// Generate resource names using actual API methods
-const bucketName = naming.s3BucketName('data-storage');
-// Result: "myproject-prod-data-storage-abc123" (with stable suffix)
-
-const roleName = naming.iamRoleName('api-handler');
-// Result: "MyProject-prod-api-handler"
-
-const resourceName = naming.resourceName('user-sessions');
-// Result: "myproject-prod-user-sessions"
+const stackName = naming.stackName('API');
+const bucketName = naming.s3BucketName('artifacts');
+const tags = naming.standardTags({ owner: 'Platform Team' });
 ```
 
-#### Available Naming Methods
+### 🏷️ Tagging Utilities
+
+- **`generateStandardTags()`** - Produces canonical tag set:
+  - `App` - Application/project name
+  - `Environment` - Environment (NonProd, Prod, Management, Shared)
+  - `Owner` - Resource owner
+  - `Company` - Company name
+  - `ManagedBy` - Management tool (defaults to 'aws-utils')
+- **Environment-aware tag normalization** - Automatically maps `nprd` → `NonProd`, `prod` → `Prod`, etc.
+
+### 🔧 Environment Helpers
+
+- **`getRequiredEnvVar()`** - Get required environment variable (throws if missing)
+- **`getRequiredEnvVarStrict()`** - Get required environment variable with strict validation
+- **`getAccountIdFromEnv()`** - Get AWS account ID from environment variable
+- **`getEnvVarWithDefault()`** - Get environment variable with default value
+- **`ENV_VALUES`** - Validated environment constants: `nprd`, `prod`, `mgmt`, `shrd`, `pprd`
+- **`validateEnvironment()`** - Validate environment against allowed values
+- **`isValidEnvironment()`** - Check if environment is valid
+
+### 🛠️ CLI & Schema Generation
+
+- **`npx @codeiqlabs/aws-utils setup-intellisense`** - Wire manifest schema into VS Code / IntelliJ YAML/JSON settings for autocomplete
+- **`npm run generate-schemas`** - Emit `schemas/manifest.schema.json` from Zod schemas
+- **JSON Schemas** hosted on GitHub for IDE IntelliSense:
+  - `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json`
+  - `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/management-manifest.schema.json`
+  - `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/workload-manifest.schema.json`
+
+---
+
+## Architecture
+
+### How It's Organized
+
+```
+@codeiqlabs/aws-utils/
+├── src/
+│   ├── application/        # Higher-level helpers (initializeApp, manifest loader)
+│   ├── config/             # YAML loaders, manifest loaders, Zod schemas
+│   │   ├── schemas/
+│   │   │   ├── base/       # Base schemas (accounts, environments, tags)
+│   │   │   ├── resources/  # Resource schemas (networking, security, domains)
+│   │   │   └── applications/ # Application schemas (unified config)
+│   │   └── utils/          # Config utilities (YAML loading, env var expansion)
+│   ├── naming/             # Naming functions + ResourceNaming class + types
+│   ├── tagging/            # Tagging functions + types + convenience helpers
+│   ├── helpers/            # Environment variable helpers
+│   ├── constants/          # Environment constants and validation
+│   ├── cli/                # setup-intellisense entrypoint
+│   └── index.ts            # Main package entry point
+├── schemas/                # Generated JSON schemas for manifests
+├── scripts/                # generate-schemas.ts
+└── tests/                  # Dual ESM/CJS import tests
+```
+
+### Export Strategy
+
+The package uses a **multi-level export strategy** for flexibility:
+
+1. **Main Export** (`@codeiqlabs/aws-utils`) - Most commonly used utilities
+2. **Subpath Exports** - Specialized modules:
+   - `@codeiqlabs/aws-utils/naming` - Naming utilities
+   - `@codeiqlabs/aws-utils/tagging` - Tagging utilities
+   - `@codeiqlabs/aws-utils/constants` - Constants
+   - `@codeiqlabs/aws-utils/config` - Configuration utilities
+   - `@codeiqlabs/aws-utils/helpers` - Helper functions
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+npm install @codeiqlabs/aws-utils
+```
+
+### Basic Usage
+
+#### 1. Load & Validate a Manifest
 
 ```typescript
-// Core naming methods (actual API)
-naming.stackName('DeploymentPermissions'); // CDK stack names
-naming.exportName('vpc-id'); // CloudFormation export names
-naming.resourceName('database'); // Generic resource names
-naming.iamRoleName('execution-role'); // IAM role names
-naming.s3BucketName('artifacts'); // S3 bucket names (with stable suffix)
-naming.s3BucketName('artifacts', false); // S3 bucket names (without suffix)
-naming.domainName('example.com', 'api'); // Domain names with subdomains
-naming.ssmParameterName('accounts', 'prod-id'); // SSM parameter names
+import { loadManifest, initializeApp } from '@codeiqlabs/aws-utils';
 
-// Tagging integration
-naming.standardTags({
-  owner: 'platform-team',
-  company: 'MyOrganization',
-}); // Generate standard tags
+// Option 1: Generic loader with auto-detection
+const result = await loadManifest('./manifest.yaml');
 
-// Configuration access
-naming.getConfig(); // Get current naming configuration
+if (result.success) {
+  console.log(`Loaded ${result.type} manifest`);
+  console.log('Project:', result.data.project);
+  console.log('Deployment:', result.data.deployment);
+} else {
+  console.error('Validation failed:', result.error);
+}
+
+// Option 2: Enhanced loader for CDK apps
+const appResult = await initializeApp('src/manifest.yaml');
+
+if (appResult.success) {
+  const config = appResult.data;
+  // Use strongly-typed config with env var expansion and validation
+}
 ```
 
-### Standard Tagging Utilities
+#### 2. Standardized Resource Naming
 
-The package provides utilities for generating consistent tags across all AWS resources.
+```typescript
+import { generateStackName, generateS3BucketName, ResourceNaming } from '@codeiqlabs/aws-utils';
 
-**Note**: For CDK-specific tagging functions like `applyStandardTags()`, use the
-`@codeiqlabs/aws-cdk` package which provides CDK construct integration.
+// Option 1: Direct function calls
+const stackName = generateStackName(
+  { project: 'MyApp', environment: 'prod' },
+  'API'
+);
+// Result: "MyApp-prod-API-Stack"
 
-#### Basic Tagging
+const bucketName = generateS3BucketName(
+  { project: 'MyApp', environment: 'prod', accountId: '123456789012', region: 'us-east-1' },
+  { purpose: 'artifacts' }
+);
+// Result: "myapp-prod-artifacts-abc123"
+
+// Option 2: Convenience class (recommended for multiple resources)
+const naming = new ResourceNaming({
+  project: 'MyApp',
+  environment: 'prod',
+  region: 'us-east-1',
+  accountId: '123456789012',
+});
+
+const apiStack = naming.stackName('API');
+const artifactsBucket = naming.s3BucketName('artifacts');
+const deployRole = naming.iamRoleName('DeploymentRole');
+const apiParam = naming.ssmParameterName('config', 'api-key');
+// Result: "/MyApp/prod/config/api-key"
+```
+
+#### 3. Standard Tagging
 
 ```typescript
 import { generateStandardTags } from '@codeiqlabs/aws-utils';
 
-// Generate standard tags for AWS resources
 const tags = generateStandardTags(
-  { project: 'MyProject', environment: 'prod' }, // NamingConfig
-  { owner: 'platform-team', company: 'MyOrganization' }, // TaggingOptions
+  { project: 'MyApp', environment: 'prod' },
+  { owner: 'Platform Team', company: 'MyCompany' }
 );
 
 // Result:
 // {
-//   App: 'MyProject',
-//   Environment: 'prod',
-//   Owner: 'platform-team',
-//   Company: 'MyOrganization',
+//   App: 'MyApp',
+//   Environment: 'Prod',
+//   Owner: 'Platform Team',
+//   Company: 'MyCompany',
 //   ManagedBy: 'aws-utils'
 // }
+
+// Use with ResourceNaming for convenience
+const naming = new ResourceNaming({ project: 'MyApp', environment: 'prod' });
+const tags = naming.standardTags({ owner: 'Platform Team' });
 ```
 
-## Repository Structure
-
-```
-codeiqlabs-aws-utils/
-├── src/
-│   ├── config/          # Configuration loading and validation
-│   ├── naming/          # Resource naming utilities
-│   ├── tagging/         # Tagging utilities
-│   ├── environment/     # Environment management
-│   └── schemas/         # Zod schemas for validation
-├── schemas/             # JSON schemas for IDE integration
-├── cli/                 # CLI tools (IntelliSense setup, etc.)
-├── tests/               # ESM/CommonJS integration tests
-├── dist/                # Build output (generated)
-└── package.json
-```
-
-## Usage Patterns
-
-### Resource Naming
-
-Create consistent AWS resource names across all projects:
-
-```typescript
-import { ResourceNaming } from '@codeiqlabs/aws-utils';
-
-const naming = new ResourceNaming({
-  project: 'MyProject',
-  environment: 'nprd',
-});
-
-// Generate standardized names
-const stackName = naming.stackName('DeploymentPermissions');
-// Result: "MyProject-NonProd-DeploymentPermissions-Stack"
-
-const bucketName = naming.s3BucketName('artifacts');
-// Result: "myproject-nprd-artifacts-abc123" (with stable suffix)
-
-const resourceName = naming.resourceName('database');
-// Result: "myproject-nprd-database"
-
-const parameterName = naming.ssmParameterName('accounts', 'database-url');
-// Result: "/MyProject/nprd/accounts/database-url"
-
-const roleName = naming.iamRoleName('execution-role');
-// Result: "MyProject-nprd-execution-role"
-```
-
-### Environment Management
-
-Standardized environment handling with validation:
-
-```typescript
-import { ENV_VALUES, validateEnvironment, getAccountIdFromEnv } from '@codeiqlabs/aws-utils';
-
-// Validate environment values
-const environment = validateEnvironment('nprd'); // Valid
-// validateEnvironment('invalid'); // Throws error
-
-// Get account IDs from environment variables
-const accountId = getAccountIdFromEnv('MYPROJECT_NP_ACCOUNT', 'MyProject NonProd');
-
-// Available environment constants
-console.log(ENV_VALUES); // ['nprd', 'prod', 'mgmt', 'shared', 'pprd']
-```
-
-### Configuration Validation
-
-Validate YAML configurations with comprehensive Zod schemas:
-
-```typescript
-import { loadManifest } from '@codeiqlabs/aws-utils';
-
-// Load and validate any manifest with auto-detection
-const result = await loadManifest('./config/manifest.yaml');
-
-if (result.success) {
-  console.log(`Loaded ${result.type} manifest`);
-
-  // Type-safe access based on detected type
-  if (result.type === 'management') {
-    // result.data is typed as ManagementAppConfig
-    console.log(`Organization enabled: ${result.data.organization?.enabled}`);
-  } else if (result.type === 'workload') {
-    // result.data is typed as WorkloadAppConfig
-    console.log(`Environments: ${Object.keys(result.data.environments || {})}`);
-  }
-} else {
-  console.error(`Failed to load manifest: ${result.error}`);
-}
-
-// Manual validation with specific schemas
-import { ManagementAppConfigSchema, WorkloadAppConfigSchema } from '@codeiqlabs/aws-utils/config';
-
-// Validate specific manifest types
-const managementConfig = ManagementAppConfigSchema.parse(yamlData);
-const workloadConfig = WorkloadAppConfigSchema.parse(yamlData);
-```
-
-### Tagging Utilities
-
-Automated tagging for compliance and resource management:
-
-```typescript
-import { generateStandardTags } from '@codeiqlabs/aws-utils';
-
-// Generate standardized tags for AWS resources
-const tags = generateStandardTags(
-  { project: 'MyProject', environment: 'nprd' },
-  { owner: 'Platform Team', company: 'MyOrganization' },
-);
-
-// Add additional tags as needed
-const allTags = {
-  ...tags,
-  Component: 'API',
-  CostCenter: 'Engineering',
-};
-
-// Apply tags to CDK constructs (requires @codeiqlabs/aws-cdk for applyStandardTags)
-// import { applyStandardTags } from '@codeiqlabs/aws-cdk';
-// applyStandardTags(stack, allTags);
-```
-
-## Manifest Schemas & Generic Configuration Loader
-
-CodeIQLabs AWS Utils provides comprehensive manifest schemas for all AWS account types and a
-powerful generic configuration loader with automatic type detection.
-
-### Supported Manifest Types
-
-The library supports four distinct manifest types, each designed for specific AWS account roles:
-
-| Type                  | Purpose                    | Use Case                                                       |
-| --------------------- | -------------------------- | -------------------------------------------------------------- |
-| **`management`**      | Organizational governance  | AWS Organizations, Identity Center, cross-account roles        |
-| **`baseline`**        | Account foundations        | VPC, security groups, compliance services (CloudTrail, Config) |
-| **`shared-services`** | Centralized services       | Monitoring, networking, backup, artifact storage               |
-| **`workload`**        | Application infrastructure | Multi-environment apps, CI/CD, scaling configurations          |
-
-### Generic Configuration Loader
-
-The generic loader automatically detects manifest types and provides type-safe validation:
-
-```typescript
-import { loadManifest, loadManifests, loadManifestsByType } from '@codeiqlabs/aws-utils';
-
-// Load any manifest file with auto-detection
-const result = await loadManifest('./manifest.yaml');
-if (result.success) {
-  console.log(`Loaded ${result.type} manifest`);
-  // result.data is properly typed based on detected type
-  if (result.type === 'management') {
-    console.log(`Organization: ${result.data.organization.name}`);
-  }
-}
-
-// Load multiple manifests from a directory
-const results = await loadManifests('./config/');
-console.log(`Found ${results.length} manifest files`);
-
-// Load and organize manifests by type
-const organized = await loadManifestsByType('./config/');
-console.log(`Management: ${organized.management.length}`);
-console.log(`Workload: ${organized.workload.length}`);
-console.log(`Errors: ${organized.errors.length}`);
-```
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- npm 9+
-- TypeScript 5+
-
-### Setup
+#### 4. CLI Usage - Setup IntelliSense
 
 ```bash
-# Clone the repository
-git clone https://github.com/CodeIQLabs/codeiqlabs-aws-utils.git
-cd codeiqlabs-aws-utils
+# Auto-detect and set up IntelliSense for all manifest files
+npx @codeiqlabs/aws-utils setup-intellisense
 
-# Install dependencies
-npm install
+# Set up for a specific manifest file
+npx @codeiqlabs/aws-utils setup-intellisense --manifest=src/manifest.yaml
 
-# Build the package (dual ESM/CJS with tsup)
-npm run build
+# Force a specific manifest type
+npx @codeiqlabs/aws-utils setup-intellisense --type=management
 
-# Run tests
-npm run test:all
-
-# Lint and format
-npm run lint
-npm run format
+# Run in quiet mode
+npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
 ```
 
-### Build Commands
-
-```bash
-# Clean build artifacts
-npm run clean
-
-# Build with tsup (ESM + CJS + types + source maps)
-npm run build:bundle
-
-# Full build pipeline (clean + bundle + lint)
-npm run build
-
-# Development watch mode
-npm run dev
-
-# Generate JSON schemas
-npm run generate-schemas
-```
-
-## 🧪 Testing
-
-```bash
-# Run all tests (CJS + ESM import tests)
-npm run test:all
-
-# Run individual test suites
-npm run test:load    # Configuration loading tests
-npm run test:esm     # ESM import tests
-```
-
-## Status & Compatibility
-
-- **Current Version:** 1.5.0
-- **Node.js:** 18.0.0+
-- **TypeScript:** 5.0+
-- **Stability:** Production-ready
-
-**Release Notes:** See [CHANGELOG.md](./CHANGELOG.md)
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT – See [LICENSE](./LICENSE) for details.
+**What it does:**
+- Configures VS Code YAML schema mappings in `.vscode/settings.json`
+- Configures IntelliJ IDEA JSON schema mappings in `.idea/jsonSchemas.xml`
+- Adds schema reference comments to your manifest files
+- Enables autocomplete, validation, and hover documentation in your IDE
 
 ---
 
-**Part of the CodeIQLabs infrastructure ecosystem** - Standardized AWS utilities for schema-driven
-configuration, resource naming, and infrastructure validation.
+## Common Use Cases
+
+### When to Use This Library
+
+✅ **Standardize naming and tagging** across multiple AWS infrastructure projects  
+✅ **Use a single manifest schema** to configure organizations, identity center, domains, projects, and networking  
+✅ **Add IDE IntelliSense** for AWS infrastructure manifests via JSON Schema  
+✅ **Share configuration primitives** between CDK apps (`@codeiqlabs/aws-cdk`) and other tools  
+✅ **Validate environment variables** with strict type checking  
+✅ **Generate consistent resource names** that comply with AWS service limits  
+
+---
+
+## Relationship to Other CodeIQLabs Packages
+
+`@codeiqlabs/aws-utils` is the **foundation layer** for CodeIQLabs infrastructure tooling:
+
+- **`@codeiqlabs/aws-cdk`** - CDK-specific layer that builds on these utilities (component-based orchestration, constructs, stacks)
+- **`codeiqlabs-management-aws`** - Management account infrastructure (uses aws-utils for naming/tagging/config)
+- **`codeiqlabs-customization-aws`** - Deployment permissions and GitHub OIDC (uses aws-utils for naming/tagging/config)
+- **`codeiqlabs-saas-aws`** - SaaS application infrastructure (uses aws-utils + aws-cdk)
+
+This separation allows you to use the core utilities in **any** infrastructure tooling (CDK, Terraform, Pulumi, AWS SDK) without coupling to CDK.
+
+---
+
+## Status & Compatibility
+
+- **Current Version:** 1.7.1
+- **Node.js:** >=18.18
+- **TypeScript:** >=5.4.0
+- **Module Support:** ESM + CommonJS (via tsup)
+- **Stability:** Production-used, API may evolve with breaking changes noted in the [CHANGELOG](./CHANGELOG.md)
+
+---
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
+## License
+
+[MIT](./LICENSE) © CodeIQLabs
+
+---
+
+## Documentation & Resources
+
+- **[Complete File Reference](./docs/codeiqlabs/aws-utils/complete-file-reference.md)** - Detailed documentation of every file and module
+- **[Manifest Schema](https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json)** - JSON Schema for IDE autocomplete
+- **[GitHub Repository](https://github.com/CodeIQLabs/codeiqlabs-aws-utils)** - Source code and issues
+- **[Changelog](./CHANGELOG.md)** - Version history and breaking changes
+

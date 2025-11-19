@@ -56,8 +56,6 @@ import {
  *   prod:
  *     accountId: "719640820326"
  *     region: us-east-1
- * staticHosting:
- *   enabled: true
  * networking:
  *   vpc:
  *     enabled: true
@@ -83,8 +81,9 @@ import {
  *   enabled: true
  * domains:
  *   enabled: true
- * staticHosting:
- *   enabled: true
+ * networking:
+ *   vpc:
+ *     enabled: true
  * ```
  */
 
@@ -139,7 +138,7 @@ export const UnifiedAppConfigSchema = z.object({
 
   /**
    * Optional: Multi-environment deployment configurations
-   * Used for components that deploy to multiple accounts (staticHosting, networking, etc.)
+   * Used for components that deploy to multiple accounts (networking, etc.)
    */
   environments: z.record(EnvironmentConfigSchema).optional(),
 
@@ -175,18 +174,6 @@ export const UnifiedAppConfigSchema = z.object({
    * Defines how applications can be deployed using GitHub Actions
    */
   deploymentPermissions: DeploymentPermissionsSchema.optional(),
-
-  /**
-   * Static website hosting configuration
-   * Deploys to environments defined in the environments section
-   * Creates S3 buckets, CloudFront distributions, and custom domains
-   */
-  staticHosting: z
-    .object({
-      enabled: z.boolean(),
-      // Additional static hosting configuration will be added here
-    })
-    .optional(),
 
   /**
    * Networking configuration

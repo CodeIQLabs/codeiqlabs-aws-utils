@@ -656,8 +656,9 @@ npx @codeiqlabs/aws-utils setup-intellisense --type=management
      prod:
        accountId: '719640820326'
        region: us-east-1
-   staticHosting:
-     enabled: true
+   networking:
+     vpc:
+       enabled: true
    ```
 
 3. **Mixed deployment** (management + workload components):
@@ -673,8 +674,9 @@ npx @codeiqlabs/aws-utils setup-intellisense --type=management
        region: us-east-1
    organization:
      enabled: true
-   staticHosting:
-     enabled: true
+   networking:
+     vpc:
+       enabled: true
    ```
 
 **Available Components** (all optional):
@@ -683,7 +685,6 @@ npx @codeiqlabs/aws-utils setup-intellisense --type=management
 - `identityCenter` - AWS Identity Center/SSO (users, permission sets, assignments)
 - `domains` - Domain management (DNS, delegation, certificates)
 - `deploymentPermissions` - GitHub Actions deployment configuration
-- `staticHosting` - Static website hosting (S3, CloudFront)
 - `networking` - VPC and network infrastructure
 
 ---

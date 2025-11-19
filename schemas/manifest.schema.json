@@ -911,21 +911,6 @@
             }
           }
         },
-        "staticHosting": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean"
-            }
-          },
-          "required": ["enabled"],
-          "additionalProperties": false,
-          "errorMessage": {
-            "required": {
-              "enabled": "Missing required property: enabled"
-            }
-          }
-        },
         "networking": {
           "type": "object",
           "properties": {
