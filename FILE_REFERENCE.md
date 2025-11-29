@@ -567,21 +567,38 @@ npx @codeiqlabs/aws-utils setup-intellisense --type=management
 
 #### [`/src/config/schemas/resources/domains.ts`](../src/config/schemas/resources/domains.ts)
 
-**Purpose**: Domain management configuration schemas.
+**Purpose**: Multi-account domain management configuration schemas for centralized DNS, CloudFront
+distributions, and ACM certificates.
+
+**Architecture Support**:
+
+- Management Account: Route53 hosted zones, CloudFront distributions, ACM certificates (us-east-1)
+- Workload Accounts: Application infrastructure (ALBs, ECS, etc.)
+- DNS Records: ALIAS records in Management account pointing to CloudFront/ALB endpoints
 
 **Key Schemas**:
 
-- `DomainManagementSchema` - Domain management configuration
-- `RegisteredDomainSchema` - Registered domain configuration
-- `DomainDelegationSchema` - Domain delegation configuration
+- `DomainManagementSchema` - Complete domain management configuration
+- `RegisteredDomainSchema` - Registered domain with subdomains and certificates
+- `SubdomainConfigSchema` - Subdomain with CloudFront and DNS settings
+- `CloudFrontConfigSchema` - CloudFront distribution configuration
+- `AlbConfigSchema` - Direct ALB configuration (no CloudFront)
+- `DomainDelegationSchema` - Cross-account NS record delegation
 - `CertificateConfigSchema` - ACM certificate configuration
+- `SubdomainTypeSchema` - Subdomain type classification (marketing, app, api, cdn, custom)
+- `CloudFrontOriginTypeSchema` - CloudFront origin types (s3, alb, custom)
 
 **Key Types**:
 
 - `DomainManagement` - Domain management type
 - `RegisteredDomain` - Registered domain type
+- `SubdomainConfig` - Subdomain configuration type
+- `CloudFrontConfig` - CloudFront configuration type
+- `AlbConfig` - ALB configuration type
 - `DomainDelegation` - Domain delegation type
 - `CertificateConfig` - Certificate configuration type
+- `SubdomainType` - Subdomain type enum
+- `CloudFrontOriginType` - CloudFront origin type enum
 
 ---
 

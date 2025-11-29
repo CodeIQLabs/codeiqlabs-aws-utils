@@ -1,6 +1,7 @@
 # CodeIQLabs AWS Utils (@codeiqlabs/aws-utils)
 
-**Framework-agnostic AWS utilities for naming, tagging, manifest validation, and schema-driven configuration.**
+**Framework-agnostic AWS utilities for naming, tagging, manifest validation, and schema-driven
+configuration.**
 
 [![npm version](https://img.shields.io/npm/v/@codeiqlabs/aws-utils.svg)](https://www.npmjs.com/package/@codeiqlabs/aws-utils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -12,16 +13,19 @@
 
 ## Overview
 
-`@codeiqlabs/aws-utils` is a **framework-agnostic** utility library designed to standardize AWS infrastructure code across CodeIQLabs projects. It provides:
+`@codeiqlabs/aws-utils` is a **framework-agnostic** utility library designed to standardize AWS
+infrastructure code across CodeIQLabs projects. It provides:
 
-- **Schema-driven configuration** with Zod validation for AWS manifests (accounts, organizations, identity center, networking, domains, projects)
+- **Schema-driven configuration** with Zod validation for AWS manifests (accounts, organizations,
+  identity center, networking, domains, projects)
 - **Standardized resource naming** for stacks, S3 buckets, IAM roles, SSM parameters, and domains
 - **Consistent tagging** with environment-aware tag generation
 - **Environment variable helpers** with strict validation
 - **CLI tools** for IDE IntelliSense setup with JSON Schema support
 - **Dual module support** (ESM + CommonJS) for maximum compatibility
 
-Used as the **shared foundation** for other CodeIQLabs infrastructure packages like [`@codeiqlabs/aws-cdk`](https://github.com/CodeIQLabs/codeiqlabs-aws-cdk).
+Used as the **shared foundation** for other CodeIQLabs infrastructure packages like
+[`@codeiqlabs/aws-cdk`](https://github.com/CodeIQLabs/codeiqlabs-aws-cdk).
 
 ---
 
@@ -40,7 +44,8 @@ Used as the **shared foundation** for other CodeIQLabs infrastructure packages l
   - Project and environment configurations
 - **Unified `UnifiedAppConfig` schema** supporting:
   - Single-account and multi-environment deployments
-  - Component flags: `organization`, `identityCenter`, `domains`, `staticHosting`, `networking`, `deploymentPermissions`
+  - Component flags: `organization`, `identityCenter`, `domains`, `staticHosting`, `networking`,
+    `deploymentPermissions`
   - Flexible `deployment` + `environments` structure
 
 ### 🏷️ Naming Utilities
@@ -81,7 +86,8 @@ const tags = naming.standardTags({ owner: 'Platform Team' });
   - `Owner` - Resource owner
   - `Company` - Company name
   - `ManagedBy` - Management tool (defaults to 'aws-utils')
-- **Environment-aware tag normalization** - Automatically maps `nprd` → `NonProd`, `prod` → `Prod`, etc.
+- **Environment-aware tag normalization** - Automatically maps `nprd` → `NonProd`, `prod` → `Prod`,
+  etc.
 
 ### 🔧 Environment Helpers
 
@@ -95,7 +101,8 @@ const tags = naming.standardTags({ owner: 'Platform Team' });
 
 ### 🛠️ CLI & Schema Generation
 
-- **`npx @codeiqlabs/aws-utils setup-intellisense`** - Wire manifest schema into VS Code / IntelliJ YAML/JSON settings for autocomplete
+- **`npx @codeiqlabs/aws-utils setup-intellisense`** - Wire manifest schema into VS Code / IntelliJ
+  YAML/JSON settings for autocomplete
 - **`npm run generate-schemas`** - Emit `schemas/manifest.schema.json` from Zod schemas
 - **JSON Schemas** hosted on GitHub for IDE IntelliSense:
   - `https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json`
@@ -184,15 +191,12 @@ if (appResult.success) {
 import { generateStackName, generateS3BucketName, ResourceNaming } from '@codeiqlabs/aws-utils';
 
 // Option 1: Direct function calls
-const stackName = generateStackName(
-  { project: 'MyApp', environment: 'prod' },
-  'API'
-);
+const stackName = generateStackName({ project: 'MyApp', environment: 'prod' }, 'API');
 // Result: "MyApp-prod-API-Stack"
 
 const bucketName = generateS3BucketName(
   { project: 'MyApp', environment: 'prod', accountId: '123456789012', region: 'us-east-1' },
-  { purpose: 'artifacts' }
+  { purpose: 'artifacts' },
 );
 // Result: "myapp-prod-artifacts-abc123"
 
@@ -218,7 +222,7 @@ import { generateStandardTags } from '@codeiqlabs/aws-utils';
 
 const tags = generateStandardTags(
   { project: 'MyApp', environment: 'prod' },
-  { owner: 'Platform Team', company: 'MyCompany' }
+  { owner: 'Platform Team', company: 'MyCompany' },
 );
 
 // Result:
@@ -252,6 +256,7 @@ npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
 ```
 
 **What it does:**
+
 - Configures VS Code YAML schema mappings in `.vscode/settings.json`
 - Configures IntelliJ IDEA JSON schema mappings in `.idea/jsonSchemas.xml`
 - Adds schema reference comments to your manifest files
@@ -264,11 +269,12 @@ npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
 ### When to Use This Library
 
 ✅ **Standardize naming and tagging** across multiple AWS infrastructure projects  
-✅ **Use a single manifest schema** to configure organizations, identity center, domains, projects, and networking  
+✅ **Use a single manifest schema** to configure organizations, identity center, domains, projects,
+and networking  
 ✅ **Add IDE IntelliSense** for AWS infrastructure manifests via JSON Schema  
 ✅ **Share configuration primitives** between CDK apps (`@codeiqlabs/aws-cdk`) and other tools  
 ✅ **Validate environment variables** with strict type checking  
-✅ **Generate consistent resource names** that comply with AWS service limits  
+✅ **Generate consistent resource names** that comply with AWS service limits
 
 ---
 
@@ -276,12 +282,16 @@ npx @codeiqlabs/aws-utils setup-intellisense --auto --quiet
 
 `@codeiqlabs/aws-utils` is the **foundation layer** for CodeIQLabs infrastructure tooling:
 
-- **`@codeiqlabs/aws-cdk`** - CDK-specific layer that builds on these utilities (component-based orchestration, constructs, stacks)
-- **`codeiqlabs-management-aws`** - Management account infrastructure (uses aws-utils for naming/tagging/config)
-- **`codeiqlabs-customization-aws`** - Deployment permissions and GitHub OIDC (uses aws-utils for naming/tagging/config)
+- **`@codeiqlabs/aws-cdk`** - CDK-specific layer that builds on these utilities (component-based
+  orchestration, constructs, stacks)
+- **`codeiqlabs-management-aws`** - Management account infrastructure (uses aws-utils for
+  naming/tagging/config)
+- **`codeiqlabs-customization-aws`** - Deployment permissions and GitHub OIDC (uses aws-utils for
+  naming/tagging/config)
 - **`codeiqlabs-saas-aws`** - SaaS application infrastructure (uses aws-utils + aws-cdk)
 
-This separation allows you to use the core utilities in **any** infrastructure tooling (CDK, Terraform, Pulumi, AWS SDK) without coupling to CDK.
+This separation allows you to use the core utilities in **any** infrastructure tooling (CDK,
+Terraform, Pulumi, AWS SDK) without coupling to CDK.
 
 ---
 
@@ -291,7 +301,8 @@ This separation allows you to use the core utilities in **any** infrastructure t
 - **Node.js:** >=18.18
 - **TypeScript:** >=5.4.0
 - **Module Support:** ESM + CommonJS (via tsup)
-- **Stability:** Production-used, API may evolve with breaking changes noted in the [CHANGELOG](./CHANGELOG.md)
+- **Stability:** Production-used, API may evolve with breaking changes noted in the
+  [CHANGELOG](./CHANGELOG.md)
 
 ---
 
@@ -309,8 +320,10 @@ Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for g
 
 ## Documentation & Resources
 
-- **[Complete File Reference](./docs/codeiqlabs/aws-utils/complete-file-reference.md)** - Detailed documentation of every file and module
-- **[Manifest Schema](https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json)** - JSON Schema for IDE autocomplete
-- **[GitHub Repository](https://github.com/CodeIQLabs/codeiqlabs-aws-utils)** - Source code and issues
+- **[Complete File Reference](./docs/codeiqlabs/aws-utils/complete-file-reference.md)** - Detailed
+  documentation of every file and module
+- **[Manifest Schema](https://raw.githubusercontent.com/CodeIQLabs/codeiqlabs-aws-utils/main/schemas/manifest.schema.json)** -
+  JSON Schema for IDE autocomplete
+- **[GitHub Repository](https://github.com/CodeIQLabs/codeiqlabs-aws-utils)** - Source code and
+  issues
 - **[Changelog](./CHANGELOG.md)** - Version history and breaking changes
-

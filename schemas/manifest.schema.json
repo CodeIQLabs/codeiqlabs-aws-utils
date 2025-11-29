@@ -673,6 +673,95 @@
                     "$ref": "6/organization/properties/enabled",
                     "default": true
                   },
+                  "subdomains": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "$ref": "4/name"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": ["marketing", "app", "api", "cdn", "custom"]
+                        },
+                        "cloudfront": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "$ref": "11/organization/properties/enabled",
+                              "default": false
+                            },
+                            "originType": {
+                              "type": "string",
+                              "enum": ["s3", "alb", "custom"]
+                            },
+                            "originAccount": {
+                              "$ref": "11/deployment/properties/accountId"
+                            },
+                            "originRegion": {
+                              "$ref": "11/deployment/properties/region"
+                            },
+                            "wafEnabled": {
+                              "$ref": "11/organization/properties/enabled",
+                              "default": false
+                            },
+                            "priceClass": {
+                              "type": "string",
+                              "enum": ["PriceClass_100", "PriceClass_200", "PriceClass_All"],
+                              "default": "PriceClass_100"
+                            },
+                            "tags": {
+                              "$ref": "11/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "alb": {
+                          "type": "object",
+                          "properties": {
+                            "account": {
+                              "$ref": "11/deployment/properties/accountId"
+                            },
+                            "region": {
+                              "$ref": "11/deployment/properties/region"
+                            },
+                            "name": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "wafEnabled": {
+                              "$ref": "11/organization/properties/enabled",
+                              "default": false
+                            }
+                          },
+                          "required": ["account", "region"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "account": "Missing required property: account",
+                              "region": "Missing required property: region"
+                            }
+                          }
+                        },
+                        "enabled": {
+                          "$ref": "9/organization/properties/enabled",
+                          "default": true
+                        },
+                        "tags": {
+                          "$ref": "9/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
+                        }
+                      },
+                      "required": ["name", "type"],
+                      "additionalProperties": false,
+                      "errorMessage": {
+                        "required": {
+                          "name": "Missing required property: name",
+                          "type": "Missing required property: type"
+                        }
+                      }
+                    }
+                  },
                   "delegations": {
                     "type": "array",
                     "items": {
@@ -763,12 +852,11 @@
                     "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
                   }
                 },
-                "required": ["name", "hostedZoneId"],
+                "required": ["name"],
                 "additionalProperties": false,
                 "errorMessage": {
                   "required": {
-                    "name": "Missing required property: name",
-                    "hostedZoneId": "Missing required property: hostedZoneId"
+                    "name": "Missing required property: name"
                   }
                 }
               },
