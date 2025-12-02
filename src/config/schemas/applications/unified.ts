@@ -10,7 +10,9 @@ import {
   OrganizationSchema,
   IdentityCenterSchema,
   DomainManagementSchema,
-  DeploymentPermissionsSchema,
+  AlbOriginDiscoverySchema,
+  GitHubDeployPermissionsSchema,
+  GitHubOidcConfigSchema,
 } from '../resources';
 
 /**
@@ -169,11 +171,24 @@ export const UnifiedAppConfigSchema = z.object({
   domains: DomainManagementSchema.optional(),
 
   /**
-   * Deployment permissions and GitHub Actions configuration
-   * Can be deployed to any account
-   * Defines how applications can be deployed using GitHub Actions
+   * ALB Origin Discovery configuration
+   * Deploys cross-account IAM roles to workload accounts
+   * Enables Management account Lambda to read SSM parameters for ALB DNS discovery
    */
-  deploymentPermissions: DeploymentPermissionsSchema.optional(),
+  albOriginDiscovery: AlbOriginDiscoverySchema.optional(),
+
+  /**
+   * GitHub deploy permissions configuration (legacy)
+   * Enables GitHub OIDC + deploy roles for SaaS UI deployments
+   */
+  githubDeployPermissions: GitHubDeployPermissionsSchema.optional(),
+
+  /**
+   * GitHub OIDC configuration
+   * Creates GitHub Actions OIDC identity provider and IAM roles in workload accounts
+   * for CI/CD deployments without long-lived credentials
+   */
+  githubOidc: GitHubOidcConfigSchema.optional(),
 
   /**
    * Networking configuration
@@ -185,8 +200,148 @@ export const UnifiedAppConfigSchema = z.object({
       vpc: z
         .object({
           enabled: z.boolean(),
-          // Additional VPC configuration will be added here
+          cidr: z.string().optional(),
+          maxAzs: z.number().min(1).max(3).optional(),
+          natGateways: z.number().min(0).max(3).optional(),
+          enableFlowLogs: z.boolean().optional(),
+          flowLogsRetentionDays: z.number().optional(),
         })
+        .optional(),
+    })
+    .optional(),
+
+  /**
+   * Compute configuration
+   * Deploys ECS Fargate services with shared ALB for multi-brand applications
+   * Creates ECR repositories, ECS services, ALB with path-based routing
+   */
+  compute: z
+    .object({
+      ecs: z
+        .object({
+          enabled: z.boolean(),
+          /**
+           * Management account ID for cross-account certificate reference
+           */
+          managementAccountId: AwsAccountIdSchema.optional(),
+          /**
+           * ACM certificate ARN from Management account for ALB HTTPS
+           */
+          certificateArn: z.string().optional(),
+          /**
+           * Marketing services configuration (Next.js SSR on ECS Fargate)
+           */
+          marketing: z
+            .object({
+              enabled: z.boolean(),
+              brands: z.array(z.string()).optional(),
+              defaultBrand: z.string().optional(),
+              containerPort: z.number().optional(),
+              healthCheckPath: z.string().optional(),
+              desiredCount: z.number().optional(),
+              cpu: z.number().optional(),
+              memoryMiB: z.number().optional(),
+            })
+            .optional(),
+          /**
+           * API services configuration (Node.js API on ECS Fargate)
+           */
+          api: z
+            .object({
+              enabled: z.boolean(),
+              containerPort: z.number().optional(),
+              healthCheckPath: z.string().optional(),
+              desiredCount: z.number().optional(),
+              cpu: z.number().optional(),
+              memoryMiB: z.number().optional(),
+            })
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+
+  /**
+   * Static hosting configuration
+   * Creates S3 buckets for static web app hosting (Expo Web builds)
+   * CloudFront distribution is created in Management account
+   */
+  staticHosting: z
+    .object({
+      enabled: z.boolean(),
+      /**
+       * Management account ID for CloudFront OAC access
+       */
+      managementAccountId: AwsAccountIdSchema.optional(),
+      /**
+       * Web app configuration for each brand
+       */
+      webApps: z
+        .array(
+          z.object({
+            brand: z.string(),
+            enableVersioning: z.boolean().optional(),
+          }),
+        )
+        .optional(),
+    })
+    .optional(),
+
+  /**
+   * Secrets configuration
+   * Creates AWS Secrets Manager secrets for application configuration
+   * Secrets are created with placeholder values that need to be updated after deployment
+   */
+  secrets: z
+    .object({
+      enabled: z.boolean(),
+      /**
+       * Secret retention period in days when deleted
+       * @default 7
+       */
+      recoveryWindowInDays: z.number().min(7).max(30).optional(),
+      /**
+       * List of brands for per-brand secrets
+       * Used when a secret item has perBrand: true
+       */
+      brands: z.array(z.string()).optional(),
+      /**
+       * Secret items to create
+       */
+      items: z
+        .array(
+          z.object({
+            /**
+             * Secret key - used in the secret name: {project}/{env}/{key}
+             */
+            key: z.string(),
+            /**
+             * Human-readable description of the secret
+             */
+            description: z.string().optional(),
+            /**
+             * If true, auto-generate a random secret value
+             * @default false
+             */
+            generated: z.boolean().optional(),
+            /**
+             * Length of generated secret (only used when generated: true)
+             * @default 32
+             */
+            length: z.number().min(16).max(128).optional(),
+            /**
+             * If true, create one secret per brand: {project}/{env}/{key}/{brand}
+             * Requires brands array to be defined
+             * @default false
+             */
+            perBrand: z.boolean().optional(),
+            /**
+             * If provided, creates a JSON secret with these fields as keys
+             * Each field gets a placeholder value
+             */
+            jsonFields: z.array(z.string()).optional(),
+          }),
+        )
         .optional(),
     })
     .optional(),

@@ -61,8 +61,8 @@ export {
   CrossAccountRoleSchema,
   // GitHub OIDC schemas
   GitHubOidcSchema,
-  // Deployment permissions schemas
-  DeploymentPermissionsSchema,
+  // ALB Origin Discovery schemas
+  AlbOriginDiscoverySchema,
   // Project schemas
   ProjectEnvironmentSchema,
   ProjectSchema,
@@ -146,8 +146,8 @@ export type {
   CrossAccountRole,
   // GitHub OIDC types
   GitHubOidc,
-  // Deployment permissions types
-  DeploymentPermissions,
+  // ALB Origin Discovery types
+  AlbOriginDiscovery,
   // Project types
   ProjectEnvironment,
   Project,

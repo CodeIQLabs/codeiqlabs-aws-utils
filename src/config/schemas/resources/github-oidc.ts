@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ISO8601DurationSchema } from '../base';
+import { ISO8601DurationSchema, AwsAccountIdSchema, AwsRegionSchema } from '../base';
 
 /**
  * GitHub OIDC configuration schemas for CodeIQLabs AWS projects
@@ -10,7 +10,7 @@ import { ISO8601DurationSchema } from '../base';
  */
 
 /**
- * GitHub OIDC configuration
+ * Simple GitHub OIDC configuration (legacy)
  * Defines GitHub OIDC provider settings for CI/CD
  */
 export const GitHubOidcSchema = z.object({
@@ -21,3 +21,67 @@ export const GitHubOidcSchema = z.object({
 });
 
 export type GitHubOidc = z.infer<typeof GitHubOidcSchema>;
+
+/**
+ * GitHub repository configuration for OIDC trust policy
+ */
+export const GitHubRepositoryConfigSchema = z.object({
+  /** GitHub organization or user name */
+  owner: z.string().min(1, 'Owner is required'),
+  /** Repository name */
+  repo: z.string().min(1, 'Repository name is required'),
+  /** Branch filter (e.g., 'main', 'refs/heads/main', '*') - defaults to 'main' */
+  branch: z.string().optional().default('main'),
+  /** Allow version tags (e.g., 'v*.*.*') - defaults to true */
+  allowTags: z.boolean().optional().default(true),
+});
+
+export type GitHubRepositoryConfig = z.infer<typeof GitHubRepositoryConfigSchema>;
+
+/**
+ * Environment configuration for GitHub OIDC deployment
+ */
+export const GitHubOidcEnvironmentSchema = z.object({
+  /** Environment name (e.g., 'nprd', 'prod') */
+  name: z.string().min(1, 'Environment name is required'),
+  /** AWS account ID for this environment */
+  accountId: AwsAccountIdSchema,
+  /** AWS region for this environment */
+  region: AwsRegionSchema,
+});
+
+export type GitHubOidcEnvironment = z.infer<typeof GitHubOidcEnvironmentSchema>;
+
+/**
+ * Project configuration for GitHub OIDC
+ * Defines which repositories can deploy to which environments
+ */
+export const GitHubOidcProjectSchema = z.object({
+  /** Project name for resource naming */
+  name: z.string().min(1, 'Project name is required'),
+  /** GitHub repositories that can assume the role */
+  repositories: z.array(GitHubRepositoryConfigSchema).min(1, 'At least one repository is required'),
+  /** ECR repository name prefix for push permissions */
+  ecrRepositoryPrefix: z.string().optional().default('codeiqlabs-saas'),
+  /** S3 bucket name prefix for webapp deployment */
+  s3BucketPrefix: z.string().optional().default('codeiqlabs-saas'),
+  /** ECS cluster name prefix for service updates */
+  ecsClusterPrefix: z.string().optional().default('codeiqlabs-saas'),
+  /** Environments to deploy to */
+  environments: z.array(GitHubOidcEnvironmentSchema).min(1, 'At least one environment is required'),
+});
+
+export type GitHubOidcProject = z.infer<typeof GitHubOidcProjectSchema>;
+
+/**
+ * Full GitHub OIDC configuration for multi-project, multi-environment deployments
+ * Creates OIDC identity provider and IAM roles in workload accounts
+ */
+export const GitHubOidcConfigSchema = z.object({
+  /** Enable or disable the component */
+  enabled: z.boolean().default(true),
+  /** Projects with their repository and environment configurations */
+  projects: z.array(GitHubOidcProjectSchema).min(1, 'At least one project is required'),
+});
+
+export type GitHubOidcConfig = z.infer<typeof GitHubOidcConfigSchema>;

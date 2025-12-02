@@ -89,6 +89,26 @@ export const CloudFrontOriginTypeSchema = z.enum([
 ]);
 
 /**
+ * WAF configuration for a CloudFront distribution
+ *
+ * Small, functional block used to select a WAF profile (prod vs nprd)
+ * and, for restricted profiles, provide an allowlist of IP CIDR ranges.
+ */
+export const WafConfigSchema = z.object({
+  /**
+   * WAF profile to apply to this distribution
+   * - "prod": open to the internet (can include managed rules)
+   * - "nprd": IP-restricted using allowedIpCidrs
+   */
+  profile: z.enum(['prod', 'nprd']).default('prod'),
+
+  /**
+   * Optional list of allowed IP CIDR ranges (only meaningful for restricted profiles like "nprd")
+   */
+  allowedIpCidrs: z.array(z.string()).optional(),
+});
+
+/**
  * CloudFront distribution configuration for a subdomain
  */
 export const CloudFrontConfigSchema = z.object({
@@ -103,19 +123,14 @@ export const CloudFrontConfigSchema = z.object({
   originType: CloudFrontOriginTypeSchema.optional(),
 
   /**
-   * Origin account ID (for cross-account ALB origins)
-   */
-  originAccount: AwsAccountIdSchema.optional(),
-
-  /**
-   * Origin region (for regional resources like ALB)
-   */
-  originRegion: AwsRegionSchema.optional(),
-
-  /**
    * Whether to enable AWS WAF for this distribution
    */
   wafEnabled: BooleanSchema.default(false),
+
+  /**
+   * WAF configuration block used to select WAF profile and optional IP allowlist
+   */
+  wafConfig: WafConfigSchema.optional(),
 
   /**
    * Price class for CloudFront distribution
@@ -334,6 +349,7 @@ export type CertificateValidationMethod = z.infer<typeof CertificateValidationMe
 export type DomainRegistrar = z.infer<typeof DomainRegistrarSchema>;
 export type SubdomainType = z.infer<typeof SubdomainTypeSchema>;
 export type CloudFrontOriginType = z.infer<typeof CloudFrontOriginTypeSchema>;
+export type WafConfig = z.infer<typeof WafConfigSchema>;
 export type CloudFrontConfig = z.infer<typeof CloudFrontConfigSchema>;
 export type AlbConfig = z.infer<typeof AlbConfigSchema>;
 export type SubdomainConfig = z.infer<typeof SubdomainConfigSchema>;

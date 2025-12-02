@@ -12,7 +12,8 @@ export * from './organizations';
 export * from './identity-center';
 export * from './iam';
 export * from './github-oidc';
-export * from './deployment-permissions';
+export * from './alb-origin-discovery';
+export * from './github-deploy-permissions';
 export * from './projects';
 export * from './domains';
 
@@ -51,12 +52,21 @@ export {
 export {
   // GitHub OIDC schemas
   GitHubOidcSchema,
+  GitHubOidcConfigSchema,
+  GitHubRepositoryConfigSchema,
+  GitHubOidcEnvironmentSchema,
+  GitHubOidcProjectSchema,
 } from './github-oidc';
 
 export {
-  // Deployment permissions schemas
-  DeploymentPermissionsSchema,
-} from './deployment-permissions';
+  // ALB Origin Discovery schemas
+  AlbOriginDiscoverySchema,
+} from './alb-origin-discovery';
+
+export {
+  // GitHub deploy permissions schemas
+  GitHubDeployPermissionsSchema,
+} from './github-deploy-permissions';
 
 export {
   // Project schemas
@@ -142,12 +152,21 @@ export type {
 export type {
   // GitHub OIDC types
   GitHubOidc,
+  GitHubOidcConfig,
+  GitHubRepositoryConfig,
+  GitHubOidcEnvironment,
+  GitHubOidcProject,
 } from './github-oidc';
 
 export type {
-  // Deployment permissions types
-  DeploymentPermissions,
-} from './deployment-permissions';
+  // GitHub deploy permissions types
+  GitHubDeployPermissions,
+} from './github-deploy-permissions';
+
+export type {
+  // ALB Origin Discovery types
+  AlbOriginDiscovery,
+} from './alb-origin-discovery';
 
 export type {
   // Project types
