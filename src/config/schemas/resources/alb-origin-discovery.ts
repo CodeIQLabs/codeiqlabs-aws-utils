@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProjectSchema } from './projects';
+import { AwsAccountIdSchema, AwsRegionSchema } from '../base';
 
 /**
  * ALB Origin Discovery configuration schemas for CodeIQLabs AWS projects
@@ -8,6 +8,30 @@ import { ProjectSchema } from './projects';
  * that enables the Management account's Lambda to read SSM parameters from
  * workload accounts to discover ALB DNS names for CloudFront origin configuration.
  */
+
+/**
+ * Environment configuration for ALB Origin Discovery
+ */
+export const AlbOriginDiscoveryEnvironmentSchema = z.object({
+  name: z.string().min(1, 'Environment name is required'),
+  accountId: AwsAccountIdSchema,
+  region: AwsRegionSchema,
+});
+
+export type AlbOriginDiscoveryEnvironment = z.infer<typeof AlbOriginDiscoveryEnvironmentSchema>;
+
+/**
+ * Target configuration for ALB Origin Discovery
+ * Defines a project and its environments for origin discovery
+ */
+export const AlbOriginDiscoveryTargetSchema = z.object({
+  projectName: z.string().min(1, 'Project name is required'),
+  environments: z
+    .array(AlbOriginDiscoveryEnvironmentSchema)
+    .min(1, 'At least one environment is required'),
+});
+
+export type AlbOriginDiscoveryTarget = z.infer<typeof AlbOriginDiscoveryTargetSchema>;
 
 /**
  * ALB Origin Discovery configuration
@@ -29,11 +53,11 @@ export const AlbOriginDiscoverySchema = z.object({
   ssmParameterPrefix: z.string().default('/codeiqlabs/*'),
 
   /**
-   * Projects and their workload account environments
+   * Targets (projects and their workload account environments)
    * Each environment will have an OriginDiscoveryReadRole created
    * that allows the Management account to read SSM parameters
    */
-  projects: z.array(ProjectSchema).min(1, 'At least one project is required'),
+  targets: z.array(AlbOriginDiscoveryTargetSchema).min(1, 'At least one target is required'),
 });
 
 export type AlbOriginDiscovery = z.infer<typeof AlbOriginDiscoverySchema>;

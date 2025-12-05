@@ -7,6 +7,11 @@ import type { NamingConfig, ResourceType, IAMNamingOptions, S3NamingOptions } fr
 import { validateEnvironment, getEnvironmentDisplayName } from '../constants/environments';
 
 /**
+ * Default company name used when not specified in config
+ */
+const DEFAULT_COMPANY = 'CodeIQLabs';
+
+/**
  * Validates that required naming configuration is provided
  */
 function validateNamingConfig(config: NamingConfig): void {
@@ -130,15 +135,30 @@ function sanitizeResourceName(name: string, resourceType?: ResourceType): string
 
 /**
  * Generates a standardized CDK stack name with readable environment names
- * Pattern: {Project}-{DisplayEnvironment}-{Component}-Stack
+ *
+ * Pattern (hardcoded): {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
+ *
  * Uses display names like 'NonProd', 'Prod', 'Management', 'Shared', 'PreProd'
+ * Component names must be PascalCase (enforced at the orchestrator level)
+ *
+ * @example
+ * // With company specified
+ * generateStackName({ company: 'CodeIQLabs', project: 'SaaS', environment: 'nprd' }, 'VPC')
+ * // Returns: 'CodeIQLabs-SaaS-NonProd-VPC-Stack'
+ *
+ * // Without company (uses default 'CodeIQLabs')
+ * generateStackName({ project: 'Management', environment: 'mgmt' }, 'Organizations')
+ * // Returns: 'CodeIQLabs-Management-Management-Organizations-Stack'
  */
 export function generateStackName(config: NamingConfig, component: string): string {
   validateNamingConfig(config);
 
+  const company = config.company || DEFAULT_COMPANY;
   const displayEnv = getEnvironmentDisplayName(config.environment);
 
-  return `${config.project}-${displayEnv}-${component}-Stack`;
+  // Hardcoded pattern: {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
+  // Component names are already PascalCase (hardcoded in component-orchestrator.ts)
+  return `${company}-${config.project}-${displayEnv}-${component}-Stack`;
 }
 
 /**

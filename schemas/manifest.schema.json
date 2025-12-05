@@ -8,13 +8,26 @@
     "CodeIQLabsAwsManifest": {
       "type": "object",
       "properties": {
-        "project": {
-          "type": "string",
-          "minLength": 1
-        },
-        "company": {
-          "type": "string",
-          "minLength": 1
+        "naming": {
+          "type": "object",
+          "properties": {
+            "company": {
+              "type": "string",
+              "minLength": 1
+            },
+            "project": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["company", "project"],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "company": "Missing required property: company",
+              "project": "Missing required property: project"
+            }
+          }
         },
         "deployment": {
           "type": "object",
@@ -896,13 +909,14 @@
               "type": "string",
               "default": "/codeiqlabs/*"
             },
-            "projects": {
+            "targets": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "name": {
-                    "$ref": "6/organization/properties/organizationalUnits/items/properties/name"
+                  "projectName": {
+                    "type": "string",
+                    "minLength": 1
                   },
                   "environments": {
                     "type": "array",
@@ -933,11 +947,11 @@
                     "minItems": 1
                   }
                 },
-                "required": ["name", "environments"],
+                "required": ["projectName", "environments"],
                 "additionalProperties": false,
                 "errorMessage": {
                   "required": {
-                    "name": "Missing required property: name",
+                    "projectName": "Missing required property: projectName",
                     "environments": "Missing required property: environments"
                   }
                 }
@@ -945,11 +959,11 @@
               "minItems": 1
             }
           },
-          "required": ["projects"],
+          "required": ["targets"],
           "additionalProperties": false,
           "errorMessage": {
             "required": {
-              "projects": "Missing required property: projects"
+              "targets": "Missing required property: targets"
             }
           }
         },
@@ -975,12 +989,12 @@
               "type": "boolean",
               "default": true
             },
-            "projects": {
+            "targets": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "name": {
+                  "projectName": {
                     "type": "string",
                     "minLength": 1
                   },
@@ -1058,11 +1072,11 @@
                     "minItems": 1
                   }
                 },
-                "required": ["name", "repositories", "environments"],
+                "required": ["projectName", "repositories", "environments"],
                 "additionalProperties": false,
                 "errorMessage": {
                   "required": {
-                    "name": "Missing required property: name",
+                    "projectName": "Missing required property: projectName",
                     "repositories": "Missing required property: repositories",
                     "environments": "Missing required property: environments"
                   }
@@ -1071,11 +1085,11 @@
               "minItems": 1
             }
           },
-          "required": ["projects"],
+          "required": ["targets"],
           "additionalProperties": false,
           "errorMessage": {
             "required": {
-              "projects": "Missing required property: projects"
+              "targets": "Missing required property: targets"
             }
           }
         },
@@ -1319,12 +1333,11 @@
           }
         }
       },
-      "required": ["project", "company", "deployment"],
+      "required": ["naming", "deployment"],
       "additionalProperties": false,
       "errorMessage": {
         "required": {
-          "project": "Missing required property: project",
-          "company": "Missing required property: company",
+          "naming": "Missing required property: naming",
           "deployment": "Missing required property: deployment"
         }
       }

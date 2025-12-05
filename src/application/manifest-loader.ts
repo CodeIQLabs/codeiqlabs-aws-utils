@@ -140,29 +140,29 @@ function validateManifestStructure(
       };
     }
 
-    // Validate required fields
-    if (!data.project || typeof data.project !== 'string') {
+    // Validate naming section (required for unified manifests)
+    if (!data.naming || typeof data.naming !== 'object') {
       return {
         valid: false,
-        error: 'Missing or invalid project name in manifest',
+        error: 'Missing or invalid naming section in manifest',
       };
     }
 
-    if (!data.company || typeof data.company !== 'string') {
+    if (!data.naming.project || typeof data.naming.project !== 'string') {
       return {
         valid: false,
-        error: 'Missing or invalid company name in manifest',
+        error: 'Missing or invalid naming.project in manifest',
       };
     }
 
-    if (!data.management || typeof data.management !== 'object') {
+    if (!data.naming.company || typeof data.naming.company !== 'string') {
       return {
         valid: false,
-        error: 'Missing or invalid management account configuration in manifest',
+        error: 'Missing or invalid naming.company in manifest',
       };
     }
 
-    // Type-specific validation
+    // Type-specific validation for legacy manifest types
     switch (type) {
       case 'management':
         return validateManagementManifest(data);

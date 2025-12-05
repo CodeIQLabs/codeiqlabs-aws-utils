@@ -8,6 +8,7 @@ export * from './convenience';
 // Type definitions (explicit exports for better IDE support)
 export type {
   ProjectName,
+  CompanyName,
   Environment,
   ExtendedEnvironment,
   NamingConfig,

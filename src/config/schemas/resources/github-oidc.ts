@@ -53,12 +53,12 @@ export const GitHubOidcEnvironmentSchema = z.object({
 export type GitHubOidcEnvironment = z.infer<typeof GitHubOidcEnvironmentSchema>;
 
 /**
- * Project configuration for GitHub OIDC
+ * Target configuration for GitHub OIDC
  * Defines which repositories can deploy to which environments
  */
-export const GitHubOidcProjectSchema = z.object({
+export const GitHubOidcTargetSchema = z.object({
   /** Project name for resource naming */
-  name: z.string().min(1, 'Project name is required'),
+  projectName: z.string().min(1, 'Project name is required'),
   /** GitHub repositories that can assume the role */
   repositories: z.array(GitHubRepositoryConfigSchema).min(1, 'At least one repository is required'),
   /** ECR repository name prefix for push permissions */
@@ -71,7 +71,7 @@ export const GitHubOidcProjectSchema = z.object({
   environments: z.array(GitHubOidcEnvironmentSchema).min(1, 'At least one environment is required'),
 });
 
-export type GitHubOidcProject = z.infer<typeof GitHubOidcProjectSchema>;
+export type GitHubOidcTarget = z.infer<typeof GitHubOidcTargetSchema>;
 
 /**
  * Full GitHub OIDC configuration for multi-project, multi-environment deployments
@@ -80,8 +80,8 @@ export type GitHubOidcProject = z.infer<typeof GitHubOidcProjectSchema>;
 export const GitHubOidcConfigSchema = z.object({
   /** Enable or disable the component */
   enabled: z.boolean().default(true),
-  /** Projects with their repository and environment configurations */
-  projects: z.array(GitHubOidcProjectSchema).min(1, 'At least one project is required'),
+  /** Targets with their repository and environment configurations */
+  targets: z.array(GitHubOidcTargetSchema).min(1, 'At least one target is required'),
 });
 
 export type GitHubOidcConfig = z.infer<typeof GitHubOidcConfigSchema>;

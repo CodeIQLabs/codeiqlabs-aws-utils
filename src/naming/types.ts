@@ -8,13 +8,23 @@ export type { Environment, ExtendedEnvironment } from '../constants/environments
 export type { TaggingOptions, ExtraTags } from '../tagging/types';
 
 export type ProjectName = string;
+export type CompanyName = string;
 
 /**
  * Core naming configuration interface
  * Used across all CodeIQLabs projects for consistent resource naming
+ *
+ * Stack naming pattern (hardcoded in library):
+ * {company}-{project}-{environment}-{component}-Stack
+ *
+ * Example: CodeIQLabs-SaaS-NonProd-VPC-Stack
  */
 export interface NamingConfig {
+  /** Company prefix for stack names (e.g., "CodeIQLabs") */
+  company?: CompanyName;
+  /** Project identifier (e.g., "SaaS", "Management") */
   project: ProjectName;
+  /** Environment code (e.g., "nprd", "prod", "mgmt") */
   environment: ExtendedEnvironment;
   region?: string;
   accountId?: string;

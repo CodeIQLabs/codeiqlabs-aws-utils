@@ -55,12 +55,14 @@ export {
   GitHubOidcConfigSchema,
   GitHubRepositoryConfigSchema,
   GitHubOidcEnvironmentSchema,
-  GitHubOidcProjectSchema,
+  GitHubOidcTargetSchema,
 } from './github-oidc';
 
 export {
   // ALB Origin Discovery schemas
   AlbOriginDiscoverySchema,
+  AlbOriginDiscoveryTargetSchema,
+  AlbOriginDiscoveryEnvironmentSchema,
 } from './alb-origin-discovery';
 
 export {
@@ -155,7 +157,7 @@ export type {
   GitHubOidcConfig,
   GitHubRepositoryConfig,
   GitHubOidcEnvironment,
-  GitHubOidcProject,
+  GitHubOidcTarget,
 } from './github-oidc';
 
 export type {
@@ -166,6 +168,8 @@ export type {
 export type {
   // ALB Origin Discovery types
   AlbOriginDiscovery,
+  AlbOriginDiscoveryTarget,
+  AlbOriginDiscoveryEnvironment,
 } from './alb-origin-discovery';
 
 export type {

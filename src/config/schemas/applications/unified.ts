@@ -31,8 +31,9 @@ import {
  *
  * @example Single-account deployment (e.g., management account)
  * ```yaml
- * project: codeiqlabs
- * company: codeiqlabs
+ * naming:
+ *   company: "CodeIQLabs"
+ *   project: "Core"
  * deployment:
  *   accountId: "682475224767"
  *   region: us-east-1
@@ -46,8 +47,9 @@ import {
  *
  * @example Multi-environment deployment (e.g., workload account)
  * ```yaml
- * project: myapp
- * company: codeiqlabs
+ * naming:
+ *   company: "CodeIQLabs"
+ *   project: "SaaS"
  * deployment:
  *   accountId: "466279485605"
  *   region: us-east-1
@@ -65,8 +67,9 @@ import {
  *
  * @example Mixed deployment (management + workload components)
  * ```yaml
- * project: codeiqlabs
- * company: codeiqlabs
+ * naming:
+ *   company: "CodeIQLabs"
+ *   project: "Customization"
  * deployment:
  *   accountId: "682475224767"
  *   region: us-east-1
@@ -77,19 +80,30 @@ import {
  *   prod:
  *     accountId: "719640820326"
  *     region: us-east-1
- * organization:
+ * albOriginDiscovery:
  *   enabled: true
- * identityCenter:
+ * githubOidc:
  *   enabled: true
- * domains:
- *   enabled: true
- * networking:
- *   vpc:
- *     enabled: true
  * ```
  */
 
 // DeploymentTargetSchema is imported from '../base'
+
+/**
+ * Naming configuration schema
+ * Defines company and project names used for stack and resource naming
+ */
+export const NamingConfigSchema = z.object({
+  /**
+   * Company name - used in stack names (e.g., CodeIQLabs)
+   */
+  company: CompanyNameSchema,
+
+  /**
+   * Project name - used in stack names (e.g., SaaS, Core, Customization)
+   */
+  project: ProjectNameSchema,
+});
 
 /**
  * Environment-specific configuration for multi-environment deployments
@@ -123,14 +137,10 @@ export const EnvironmentConfigSchema = z.object({
  */
 export const UnifiedAppConfigSchema = z.object({
   /**
-   * Project name - used for resource naming and tagging
+   * Naming configuration - defines company and project for stack/resource naming
+   * Pattern: {company}-{project}-{environment}-{component}-Stack
    */
-  project: ProjectNameSchema,
-
-  /**
-   * Company name - used for resource naming and tagging
-   */
-  company: CompanyNameSchema,
+  naming: NamingConfigSchema,
 
   /**
    * Primary deployment target
@@ -351,6 +361,7 @@ export const UnifiedAppConfigSchema = z.object({
  * Type inference for the unified application configuration
  */
 export type UnifiedAppConfig = z.infer<typeof UnifiedAppConfigSchema>;
+export type NamingConfig = z.infer<typeof NamingConfigSchema>;
 export type DeploymentTarget = z.infer<typeof DeploymentTargetSchema>;
 export type EnvironmentConfig = z.infer<typeof EnvironmentConfigSchema>;
 
