@@ -75,7 +75,6 @@ export const SubdomainTypeSchema = z.enum([
   'marketing', // Marketing/landing pages (e.g., www.example.com)
   'app', // Application frontend (e.g., app.example.com)
   'api', // API endpoints (e.g., api.example.com)
-  'cdn', // CDN/static assets (e.g., cdn.example.com)
   'custom', // Custom subdomain type
 ]);
 

@@ -18,6 +18,10 @@
             "project": {
               "type": "string",
               "minLength": 1
+            },
+            "owner": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "required": ["company", "project"],
@@ -696,7 +700,7 @@
                         },
                         "type": {
                           "type": "string",
-                          "enum": ["marketing", "app", "api", "cdn", "custom"]
+                          "enum": ["marketing", "app", "api", "custom"]
                         },
                         "cloudfront": {
                           "type": "object",
@@ -906,8 +910,7 @@
               "default": true
             },
             "ssmParameterPrefix": {
-              "type": "string",
-              "default": "/codeiqlabs/*"
+              "type": "string"
             },
             "targets": {
               "type": "array",
@@ -1032,16 +1035,13 @@
                     "minItems": 1
                   },
                   "ecrRepositoryPrefix": {
-                    "type": "string",
-                    "default": "codeiqlabs-saas"
+                    "type": "string"
                   },
                   "s3BucketPrefix": {
-                    "type": "string",
-                    "default": "codeiqlabs-saas"
+                    "type": "string"
                   },
                   "ecsClusterPrefix": {
-                    "type": "string",
-                    "default": "codeiqlabs-saas"
+                    "type": "string"
                   },
                   "environments": {
                     "type": "array",
@@ -1142,87 +1142,78 @@
                 "enabled": {
                   "type": "boolean"
                 },
-                "managementAccountId": {
-                  "$ref": "5/deployment/properties/accountId"
-                },
                 "certificateArn": {
                   "type": "string"
                 },
-                "marketing": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "brands": {
-                      "type": "array",
-                      "items": {
+                "services": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": ["web", "api", "worker"]
+                      },
+                      "enabled": {
+                        "type": "boolean",
+                        "default": true
+                      },
+                      "brands": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "defaultBrand": {
                         "type": "string"
+                      },
+                      "containerPort": {
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 65535,
+                        "default": 3000
+                      },
+                      "healthCheckPath": {
+                        "type": "string",
+                        "default": "/health"
+                      },
+                      "desiredCount": {
+                        "type": "number",
+                        "minimum": 0,
+                        "default": 1
+                      },
+                      "cpu": {
+                        "type": "number",
+                        "default": 256
+                      },
+                      "memoryMiB": {
+                        "type": "number",
+                        "default": 512
                       }
                     },
-                    "defaultBrand": {
-                      "type": "string"
-                    },
-                    "containerPort": {
-                      "type": "number"
-                    },
-                    "healthCheckPath": {
-                      "type": "string"
-                    },
-                    "desiredCount": {
-                      "type": "number"
-                    },
-                    "cpu": {
-                      "type": "number"
-                    },
-                    "memoryMiB": {
-                      "type": "number"
+                    "required": ["name", "type"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "name": "Missing required property: name",
+                        "type": "Missing required property: type"
+                      }
                     }
                   },
-                  "required": ["enabled"],
-                  "additionalProperties": false,
-                  "errorMessage": {
-                    "required": {
-                      "enabled": "Missing required property: enabled"
-                    }
-                  }
-                },
-                "api": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "containerPort": {
-                      "type": "number"
-                    },
-                    "healthCheckPath": {
-                      "type": "string"
-                    },
-                    "desiredCount": {
-                      "type": "number"
-                    },
-                    "cpu": {
-                      "type": "number"
-                    },
-                    "memoryMiB": {
-                      "type": "number"
-                    }
-                  },
-                  "required": ["enabled"],
-                  "additionalProperties": false,
-                  "errorMessage": {
-                    "required": {
-                      "enabled": "Missing required property: enabled"
-                    }
-                  }
+                  "minItems": 1
                 }
               },
-              "required": ["enabled"],
+              "required": ["enabled", "services"],
               "additionalProperties": false,
               "errorMessage": {
                 "required": {
-                  "enabled": "Missing required property: enabled"
+                  "enabled": "Missing required property: enabled",
+                  "services": "Missing required property: services"
                 }
               }
             }
@@ -1247,7 +1238,8 @@
                     "type": "string"
                   },
                   "enableVersioning": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": true
                   }
                 },
                 "required": ["brand"],

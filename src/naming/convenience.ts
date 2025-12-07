@@ -74,12 +74,37 @@ export class ResourceNaming {
   }
 
   /**
-   * Generate an SSM parameter name following CodeIQLabs naming conventions
-   * Pattern: /{project}/{environment}/{category}/{name}
-   * Example: /CodeIQLabs/Management/accounts/budgettrack-nprd-id
+   * Generate an SSM parameter name following standard naming conventions
+   *
+   * Pattern: /{company}/{project}/{environment}/{category}/{name}
+   * All segments are lowercase for consistency.
+   *
+   * @param category - Logical grouping (e.g., 'frontend', 'api', 'webapp')
+   * @param name - Parameter name (e.g., 'alb-dns', 'bucket-name')
+   * @returns SSM parameter path
+   *
+   * @example
+   * // With company: 'AcmeCorp', project: 'MyApp', environment: 'nprd'
+   * naming.ssmParameterName('frontend', 'alb-dns')
+   * // Returns: '/acmecorp/myapp/nprd/frontend/alb-dns'
+   *
+   * @example
+   * // With nested category for brand-specific parameters
+   * naming.ssmParameterName('webapp/brand-a', 'bucket-name')
+   * // Returns: '/acmecorp/myapp/nprd/webapp/brand-a/bucket-name'
    */
   ssmParameterName(category: string, name: string): string {
-    return `/${this.config.project}/${this.config.environment}/${category}/${name}`;
+    // Company is required by schema validation, but TypeScript type allows optional
+    // Throw a clear error if company is not provided
+    if (!this.config.company) {
+      throw new Error(
+        'Company is required for SSM parameter naming. Ensure company is set in naming config.',
+      );
+    }
+    const company = this.config.company.toLowerCase();
+    const project = this.config.project.toLowerCase();
+    const environment = this.config.environment.toLowerCase();
+    return `/${company}/${project}/${environment}/${category}/${name}`;
   }
 
   /**

@@ -16,6 +16,7 @@ export * from './alb-origin-discovery';
 export * from './github-deploy-permissions';
 export * from './projects';
 export * from './domains';
+export * from './ecs-service';
 
 /**
  * Convenience re-exports for commonly used resource schemas
@@ -118,6 +119,13 @@ export {
   InspectorConfigSchema,
   AccessAnalyzerConfigSchema,
 } from './compliance';
+
+export {
+  // ECS Service schemas
+  EcsServiceTypeSchema,
+  EcsServiceSchema,
+  EcsComputeConfigSchema,
+} from './ecs-service';
 
 /**
  * Convenience re-exports for commonly used resource types
@@ -228,3 +236,10 @@ export type {
   InspectorConfig,
   AccessAnalyzerConfig,
 } from './compliance';
+
+export type {
+  // ECS Service types
+  EcsServiceType,
+  EcsService,
+  EcsComputeConfig,
+} from './ecs-service';

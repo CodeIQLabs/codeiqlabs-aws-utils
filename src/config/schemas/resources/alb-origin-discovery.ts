@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { AwsAccountIdSchema, AwsRegionSchema } from '../base';
 
 /**
- * ALB Origin Discovery configuration schemas for CodeIQLabs AWS projects
+ * ALB Origin Discovery configuration schemas
  *
  * This module provides validation schemas for ALB origin discovery configuration
  * that enables the Management account's Lambda to read SSM parameters from
@@ -47,10 +47,12 @@ export const AlbOriginDiscoverySchema = z.object({
   /**
    * SSM parameter path prefix for ALB DNS parameters
    * The Management account Lambda will be granted read access to parameters
-   * matching this prefix in workload accounts
-   * @default "/codeiqlabs/*"
+   * matching this prefix in workload accounts.
+   *
+   * Should be derived from company name: /{company}/*
+   * If not provided, will be derived from manifest naming.company
    */
-  ssmParameterPrefix: z.string().default('/codeiqlabs/*'),
+  ssmParameterPrefix: z.string().optional(),
 
   /**
    * Targets (projects and their workload account environments)

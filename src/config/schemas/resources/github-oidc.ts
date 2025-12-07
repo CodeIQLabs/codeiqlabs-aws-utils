@@ -61,12 +61,21 @@ export const GitHubOidcTargetSchema = z.object({
   projectName: z.string().min(1, 'Project name is required'),
   /** GitHub repositories that can assume the role */
   repositories: z.array(GitHubRepositoryConfigSchema).min(1, 'At least one repository is required'),
-  /** ECR repository name prefix for push permissions */
-  ecrRepositoryPrefix: z.string().optional().default('codeiqlabs-saas'),
-  /** S3 bucket name prefix for webapp deployment */
-  s3BucketPrefix: z.string().optional().default('codeiqlabs-saas'),
-  /** ECS cluster name prefix for service updates */
-  ecsClusterPrefix: z.string().optional().default('codeiqlabs-saas'),
+  /**
+   * ECR repository name prefix for push permissions
+   * If not provided, derived from {company}-{project} pattern
+   */
+  ecrRepositoryPrefix: z.string().optional(),
+  /**
+   * S3 bucket name prefix for webapp deployment
+   * If not provided, derived from {company}-{project} pattern
+   */
+  s3BucketPrefix: z.string().optional(),
+  /**
+   * ECS cluster name prefix for service updates
+   * If not provided, derived from {company}-{project} pattern
+   */
+  ecsClusterPrefix: z.string().optional(),
   /** Environments to deploy to */
   environments: z.array(GitHubOidcEnvironmentSchema).min(1, 'At least one environment is required'),
 });

@@ -13,6 +13,7 @@ import {
   AlbOriginDiscoverySchema,
   GitHubDeployPermissionsSchema,
   GitHubOidcConfigSchema,
+  EcsComputeConfigSchema,
 } from '../resources';
 
 /**
@@ -103,6 +104,14 @@ export const NamingConfigSchema = z.object({
    * Project name - used in stack names (e.g., SaaS, Core, Customization)
    */
   project: ProjectNameSchema,
+
+  /**
+   * Owner name - used for the Owner tag on resources
+   * Represents the team or individual responsible for the resources.
+   * If not specified, defaults to the company name.
+   * @example "Platform Team", "DevOps", "John Smith"
+   */
+  owner: z.string().min(1).optional(),
 });
 
 /**
@@ -227,47 +236,7 @@ export const UnifiedAppConfigSchema = z.object({
    */
   compute: z
     .object({
-      ecs: z
-        .object({
-          enabled: z.boolean(),
-          /**
-           * Management account ID for cross-account certificate reference
-           */
-          managementAccountId: AwsAccountIdSchema.optional(),
-          /**
-           * ACM certificate ARN from Management account for ALB HTTPS
-           */
-          certificateArn: z.string().optional(),
-          /**
-           * Marketing services configuration (Next.js SSR on ECS Fargate)
-           */
-          marketing: z
-            .object({
-              enabled: z.boolean(),
-              brands: z.array(z.string()).optional(),
-              defaultBrand: z.string().optional(),
-              containerPort: z.number().optional(),
-              healthCheckPath: z.string().optional(),
-              desiredCount: z.number().optional(),
-              cpu: z.number().optional(),
-              memoryMiB: z.number().optional(),
-            })
-            .optional(),
-          /**
-           * API services configuration (Node.js API on ECS Fargate)
-           */
-          api: z
-            .object({
-              enabled: z.boolean(),
-              containerPort: z.number().optional(),
-              healthCheckPath: z.string().optional(),
-              desiredCount: z.number().optional(),
-              cpu: z.number().optional(),
-              memoryMiB: z.number().optional(),
-            })
-            .optional(),
-        })
-        .optional(),
+      ecs: EcsComputeConfigSchema.optional(),
     })
     .optional(),
 
@@ -290,7 +259,12 @@ export const UnifiedAppConfigSchema = z.object({
         .array(
           z.object({
             brand: z.string(),
-            enableVersioning: z.boolean().optional(),
+            /**
+             * Enable S3 bucket versioning for data protection
+             * Recommended for production environments to enable recovery from accidental deletions
+             * @default true
+             */
+            enableVersioning: z.boolean().default(true),
           }),
         )
         .optional(),
