@@ -1220,6 +1220,64 @@
           },
           "additionalProperties": false
         },
+        "aurora": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "engine": {
+              "type": "string",
+              "const": "aurora-postgresql",
+              "default": "aurora-postgresql"
+            },
+            "engineVersion": {
+              "type": "string",
+              "default": "16.4"
+            },
+            "minCapacity": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 128,
+              "default": 0.5
+            },
+            "maxCapacity": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 128,
+              "default": 2
+            },
+            "databases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "backupRetentionDays": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 35,
+              "default": 7
+            },
+            "deletionProtection": {
+              "type": "boolean",
+              "default": true
+            },
+            "performanceInsights": {
+              "type": "boolean",
+              "default": true
+            },
+            "performanceInsightsRetention": {
+              "type": "number",
+              "minimum": 7,
+              "maximum": 731,
+              "default": 7
+            }
+          },
+          "additionalProperties": false
+        },
         "staticHosting": {
           "type": "object",
           "properties": {

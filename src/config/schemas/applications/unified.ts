@@ -14,6 +14,7 @@ import {
   GitHubDeployPermissionsSchema,
   GitHubOidcConfigSchema,
   EcsComputeConfigSchema,
+  AuroraConfigSchema,
 } from '../resources';
 
 /**
@@ -239,6 +240,12 @@ export const UnifiedAppConfigSchema = z.object({
       ecs: EcsComputeConfigSchema.optional(),
     })
     .optional(),
+
+  /**
+   * Database configuration
+   * Aurora Serverless v2 cluster hosting multiple brand databases
+   */
+  aurora: AuroraConfigSchema.optional(),
 
   /**
    * Static hosting configuration

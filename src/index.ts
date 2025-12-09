@@ -35,6 +35,7 @@ export type {
   ManagementConfig,
   OrganizationConfig,
   IdentityCenterConfig,
+  AuroraConfig,
   // Generic loader types
   ManifestFormat,
   ManifestLoadResult,

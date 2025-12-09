@@ -12,6 +12,7 @@ export * from './organizations';
 export * from './identity-center';
 export * from './iam';
 export * from './github-oidc';
+export * from './aurora';
 export * from './alb-origin-discovery';
 export * from './github-deploy-permissions';
 export * from './projects';
@@ -58,6 +59,11 @@ export {
   GitHubOidcEnvironmentSchema,
   GitHubOidcTargetSchema,
 } from './github-oidc';
+
+export {
+  // Aurora schemas
+  AuroraConfigSchema,
+} from './aurora';
 
 export {
   // ALB Origin Discovery schemas
@@ -167,6 +173,11 @@ export type {
   GitHubOidcEnvironment,
   GitHubOidcTarget,
 } from './github-oidc';
+
+export type {
+  // Aurora types
+  AuroraConfig,
+} from './aurora';
 
 export type {
   // GitHub deploy permissions types

@@ -61,6 +61,8 @@ export {
   CrossAccountRoleSchema,
   // GitHub OIDC schemas
   GitHubOidcSchema,
+  // Aurora schemas
+  AuroraConfigSchema,
   // ALB Origin Discovery schemas
   AlbOriginDiscoverySchema,
   // Project schemas
@@ -146,6 +148,8 @@ export type {
   CrossAccountRole,
   // GitHub OIDC types
   GitHubOidc,
+  // Aurora types
+  AuroraConfig,
   // ALB Origin Discovery types
   AlbOriginDiscovery,
   // Project types
