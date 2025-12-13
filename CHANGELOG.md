@@ -1,5 +1,20 @@
 # @codeiqlabs/aws-utils
 
+## 1.8.0
+
+### Minor Changes
+
+- 9e4582d: Add Aurora manifest schema and exports for serverless v2 PostgreSQL clusters
+  (multi-database defaults and retention settings).
+
+### Patch Changes
+
+- bf3e49f: Update development dependency to `@codeiqlabs/eslint-prettier-config@^1.7.1` to align
+  with the latest shared linting and formatting rules.
+  - Ensures consistent linting across CodeIQLabs repositories
+  - Regenerated package-lock.json to maintain dependency integrity
+  - No runtime or API changes included in this release
+
 ## 1.7.1
 
 ### Patch Changes
