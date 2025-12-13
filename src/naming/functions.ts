@@ -3,7 +3,13 @@
  */
 
 import * as crypto from 'node:crypto';
-import type { NamingConfig, ResourceType, IAMNamingOptions, S3NamingOptions } from './types';
+import type {
+  NamingConfig,
+  ResourceType,
+  IAMNamingOptions,
+  S3NamingOptions,
+  ResourceNameOptions,
+} from './types';
 import { validateEnvironment, getEnvironmentDisplayName } from '../constants/environments';
 
 /**
@@ -184,7 +190,7 @@ export function generateExportName(config: NamingConfig, resourceName: string): 
 export function generateResourceName(
   config: NamingConfig,
   resourceName: string,
-  resourceType?: ResourceType,
+  resourceTypeOrOptions?: ResourceType | ResourceNameOptions,
 ): string {
   validateNamingConfig(config);
 
@@ -192,8 +198,24 @@ export function generateResourceName(
     throw new Error('Resource name is required');
   }
 
+  const project = config.project.toLowerCase();
+  const environment = config.environment.toLowerCase();
+  const normalizedResourceName = resourceName.toLowerCase();
+
+  let resourceType: ResourceType | undefined;
+  let brand: string | undefined;
+
+  if (typeof resourceTypeOrOptions === 'string') {
+    resourceType = resourceTypeOrOptions;
+  } else if (resourceTypeOrOptions) {
+    resourceType = resourceTypeOrOptions.resourceType;
+    brand = resourceTypeOrOptions.brand || config.brand;
+  }
+
   // Build the base name
-  const baseName = `${config.project}-${config.environment}-${resourceName}`;
+  const baseName = brand
+    ? `${project}-${environment}-${brand.toLowerCase()}-${normalizedResourceName}`
+    : `${project}-${environment}-${normalizedResourceName}`;
 
   // Apply resource-type specific sanitization and constraints
   const sanitizedName = sanitizeResourceName(baseName, resourceType);
@@ -239,13 +261,18 @@ export function generateIAMRoleName(
     throw new Error('Role name is required for IAM role naming');
   }
 
+  const project = config.project.toLowerCase();
+  const environment = config.environment.toLowerCase();
+  const normalizedRoleName = roleName.toLowerCase();
+  const prefix = options.prefix ? options.prefix.toLowerCase() : undefined;
+
   const maxLength = options.maxLength ?? 64;
   const lengthHandling = options.lengthHandling ?? 'hash';
 
-  let name = `${config.project}-${config.environment}-${roleName}`;
+  let name = `${project}-${environment}-${normalizedRoleName}`;
 
-  if (options.prefix) {
-    name = `${options.prefix}-${name}`;
+  if (prefix) {
+    name = `${prefix}-${name}`;
   }
 
   if (options.includeAccountId && config.accountId) {
@@ -320,7 +347,11 @@ export function generateS3BucketName(config: NamingConfig, options: S3NamingOpti
     throw new Error('Purpose is required for S3 bucket naming');
   }
 
-  const base = `${config.project}-${config.environment}-${options.purpose}`;
+  const project = config.project.toLowerCase();
+  const environment = config.environment.toLowerCase();
+  const purpose = options.purpose.toLowerCase();
+
+  const base = `${project}-${environment}-${purpose}`;
   let name = sanitizeDnsLabel(base, 57); // Leave room for hyphen + suffix
 
   // Determine if we should include a suffix (default: true for global uniqueness)
@@ -328,7 +359,7 @@ export function generateS3BucketName(config: NamingConfig, options: S3NamingOpti
 
   if (shouldIncludeSuffix) {
     // Deterministic suffix based on account/region/purpose for IaC consistency
-    const hashInput = `${config.accountId ?? ''}:${config.region ?? ''}:${options.purpose}`;
+    const hashInput = `${config.accountId ?? ''}:${config.region ?? ''}:${purpose}`;
     const suffix = stableHash(hashInput, 6);
     name = sanitizeDnsLabel(`${name}-${suffix}`, 63);
   }
@@ -361,11 +392,13 @@ export function generateDomainName(
     throw new Error('Base domain is required for domain naming');
   }
 
+  const normalizedBase = baseDomain.toLowerCase();
+
   if (subdomain) {
-    return `${subdomain}.${baseDomain}`;
+    return `${subdomain.toLowerCase()}.${normalizedBase}`;
   }
 
-  return baseDomain;
+  return normalizedBase;
 }
 
 /**

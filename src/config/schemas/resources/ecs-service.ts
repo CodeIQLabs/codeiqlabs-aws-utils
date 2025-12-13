@@ -11,7 +11,7 @@ import { z } from 'zod';
  * ECS Service Type
  * Determines routing behavior and resource configuration
  */
-export const EcsServiceTypeSchema = z.enum(['web', 'api', 'worker']);
+export const EcsServiceTypeSchema = z.enum(['webapp', 'api', 'worker']);
 export type EcsServiceType = z.infer<typeof EcsServiceTypeSchema>;
 
 /**
@@ -20,22 +20,15 @@ export type EcsServiceType = z.infer<typeof EcsServiceTypeSchema>;
 export const EcsServiceSchema = z
   .object({
     /**
-     * Service name - used for stack naming and SSM parameter paths
-     * Must be lowercase, alphanumeric with hyphens
-     * Examples: 'frontend', 'api', 'admin-portal', 'worker'
+     * Optional service name override used for resource naming
+     * Defaults to the service type when not provided
      */
-    name: z
-      .string()
-      .min(1, 'Service name is required')
-      .regex(
-        /^[a-z][a-z0-9-]*$/,
-        'Service name must be lowercase, start with letter, contain only letters, numbers, and hyphens',
-      ),
+    name: z.string().min(1).optional(),
 
     /**
      * Service type - determines routing and caching behavior
-     * - web: Multi-brand frontend, path-based routing, caching enabled
-     * - api: Single service, dedicated ALB, caching disabled
+     * - webapp: Multi-brand frontend, path-based routing
+     * - api: Single service, dedicated ALB
      * - worker: Background worker, no ALB
      */
     type: EcsServiceTypeSchema,
@@ -47,16 +40,16 @@ export const EcsServiceSchema = z
     enabled: z.boolean().default(true),
 
     /**
-     * List of brands for multi-brand services (type: 'web' only)
+     * List of brands for multi-brand services (type: 'webapp' only)
      * Each brand gets its own ECS service with path-based routing.
      *
-     * Required for type: 'web' (validated by .refine())
-     * Not needed for type: 'api' or 'worker' - orchestrator uses [service.name]
+     * Required for type: 'webapp' (validated by .refine())
+     * Not needed for type: 'api' or 'worker'
      */
     brands: z.array(z.string()).optional(),
 
     /**
-     * Default brand for the service (type: 'web' only)
+     * Default brand for the service (type: 'webapp' only)
      * Must be one of the entries in brands array (validated by .refine())
      */
     defaultBrand: z.string().optional(),
@@ -94,12 +87,12 @@ export const EcsServiceSchema = z
   // Validation: 'web' type services must have brands
   .refine(
     (data) => {
-      if (data.type === 'web') {
+      if (data.type === 'webapp') {
         return data.brands && data.brands.length > 0;
       }
       return true;
     },
-    { message: "Services with type 'web' must specify at least one brand" },
+    { message: "Services with type 'webapp' must specify at least one brand" },
   )
   // Validation: defaultBrand must be one of the entries in brands
   .refine(

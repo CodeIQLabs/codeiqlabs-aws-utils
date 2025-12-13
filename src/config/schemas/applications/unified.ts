@@ -260,9 +260,9 @@ export const UnifiedAppConfigSchema = z.object({
        */
       managementAccountId: AwsAccountIdSchema.optional(),
       /**
-       * Web app configuration for each brand
+       * Static site configuration for each brand
        */
-      webApps: z
+      sites: z
         .array(
           z.object({
             brand: z.string(),

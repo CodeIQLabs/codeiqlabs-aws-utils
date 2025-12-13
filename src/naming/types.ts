@@ -26,6 +26,8 @@ export interface NamingConfig {
   project: ProjectName;
   /** Environment code (e.g., "nprd", "prod", "mgmt") */
   environment: ExtendedEnvironment;
+  /** Optional brand/tenant identifier for brand-scoped resources */
+  brand?: string;
   region?: string;
   accountId?: string;
 }
@@ -85,6 +87,11 @@ export type ResourceType =
   | 'Topic'
   | 'LogGroup'
   | 'Layer';
+
+export interface ResourceNameOptions {
+  brand?: string;
+  resourceType?: ResourceType;
+}
 
 // ============================================================================
 // SSM Parameter Types

@@ -5,7 +5,7 @@
  * Project-specific convenience classes live in separate files under ./projects.
  */
 
-import type { NamingConfig, TaggingOptions } from './types';
+import type { NamingConfig, TaggingOptions, ResourceNameOptions } from './types';
 import {
   generateStackName,
   generateExportName,
@@ -48,8 +48,8 @@ export class ResourceNaming {
   /**
    * Generate a resource name
    */
-  resourceName(name: string): string {
-    return generateResourceName(this.config, name);
+  resourceName(name: string, options?: ResourceNameOptions): string {
+    return generateResourceName(this.config, name, options);
   }
 
   /**
@@ -76,11 +76,14 @@ export class ResourceNaming {
   /**
    * Generate an SSM parameter name following standard naming conventions
    *
-   * Pattern: /{company}/{project}/{environment}/{category}/{name}
+   * Pattern:
+   * - Default: /{company}/{project}/{environment}/{category}/{name}
+   * - With brand: /{company}/{project}/{brand}/{environment}/{category}/{name}
    * All segments are lowercase for consistency.
    *
    * @param category - Logical grouping (e.g., 'frontend', 'api', 'webapp')
    * @param name - Parameter name (e.g., 'alb-dns', 'bucket-name')
+   * @param options - Optional brand for brand-scoped resources
    * @returns SSM parameter path
    *
    * @example
@@ -93,7 +96,7 @@ export class ResourceNaming {
    * naming.ssmParameterName('webapp/brand-a', 'bucket-name')
    * // Returns: '/acmecorp/myapp/nprd/webapp/brand-a/bucket-name'
    */
-  ssmParameterName(category: string, name: string): string {
+  ssmParameterName(category: string, name: string, options?: { brand?: string }): string {
     // Company is required by schema validation, but TypeScript type allows optional
     // Throw a clear error if company is not provided
     if (!this.config.company) {
@@ -104,6 +107,10 @@ export class ResourceNaming {
     const company = this.config.company.toLowerCase();
     const project = this.config.project.toLowerCase();
     const environment = this.config.environment.toLowerCase();
+    const brand = options?.brand || this.config.brand;
+    if (brand) {
+      return `/${company}/${project}/${brand.toLowerCase()}/${environment}/${category}/${name}`;
+    }
     return `/${company}/${project}/${environment}/${category}/${name}`;
   }
 

@@ -1150,14 +1150,9 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "name": {
-                        "type": "string",
-                        "minLength": 1,
-                        "pattern": "^[a-z][a-z0-9-]*$"
-                      },
                       "type": {
                         "type": "string",
-                        "enum": ["web", "api", "worker"]
+                        "enum": ["webapp", "api", "worker"]
                       },
                       "enabled": {
                         "type": "boolean",
@@ -1196,11 +1191,10 @@
                         "default": 512
                       }
                     },
-                    "required": ["name", "type"],
+                    "required": ["type"],
                     "additionalProperties": false,
                     "errorMessage": {
                       "required": {
-                        "name": "Missing required property: name",
                         "type": "Missing required property: type"
                       }
                     }
@@ -1287,7 +1281,7 @@
             "managementAccountId": {
               "$ref": "3/deployment/properties/accountId"
             },
-            "webApps": {
+            "sites": {
               "type": "array",
               "items": {
                 "type": "object",
