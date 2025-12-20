@@ -10,7 +10,6 @@ import {
   OrganizationSchema,
   IdentityCenterSchema,
   DomainManagementSchema,
-  AlbOriginDiscoverySchema,
   GitHubDeployPermissionsSchema,
   GitHubOidcConfigSchema,
   EcsComputeConfigSchema,
@@ -82,8 +81,6 @@ import {
  *   prod:
  *     accountId: "719640820326"
  *     region: us-east-1
- * albOriginDiscovery:
- *   enabled: true
  * githubOidc:
  *   enabled: true
  * ```
@@ -189,13 +186,6 @@ export const UnifiedAppConfigSchema = z.object({
    * Defines centralized domain management, DNS delegation, and SSL certificates
    */
   domains: DomainManagementSchema.optional(),
-
-  /**
-   * ALB Origin Discovery configuration
-   * Deploys cross-account IAM roles to workload accounts
-   * Enables Management account Lambda to read SSM parameters for ALB DNS discovery
-   */
-  albOriginDiscovery: AlbOriginDiscoverySchema.optional(),
 
   /**
    * GitHub deploy permissions configuration (legacy)

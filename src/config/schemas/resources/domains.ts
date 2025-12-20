@@ -145,18 +145,25 @@ export const CloudFrontConfigSchema = z.object({
 });
 
 /**
- * Application Load Balancer configuration for direct DNS (no CloudFront)
+ * Application Load Balancer configuration for CloudFront ALB origins
+ *
+ * Supports two modes:
+ * 1. originHostname mode: Uses a stable DNS hostname (e.g., webapp.origin-prod.savvue.com)
+ *    that points to the ALB. This decouples CloudFront from ALB changes.
+ * 2. Direct mode: Uses account/region/name to look up the ALB directly.
  */
 export const AlbConfigSchema = z.object({
   /**
    * AWS account ID where the ALB is deployed
+   * Optional when originHostname is provided
    */
-  account: AwsAccountIdSchema,
+  account: AwsAccountIdSchema.optional(),
 
   /**
    * AWS region where the ALB is deployed
+   * Optional when originHostname is provided
    */
-  region: AwsRegionSchema,
+  region: AwsRegionSchema.optional(),
 
   /**
    * ALB name or identifier for lookup
@@ -164,9 +171,36 @@ export const AlbConfigSchema = z.object({
   name: z.string().min(1).optional(),
 
   /**
+   * Stable origin hostname for CloudFront to use as ALB origin
+   * Format: {service}.origin-{env}.{brand} (e.g., webapp.origin-prod.savvue.com)
+   * This is the preferred approach as it decouples CloudFront from ALB changes
+   */
+  originHostname: z.string().min(1).optional(),
+
+  /**
    * Whether to enable WAF for the ALB
    */
   wafEnabled: BooleanSchema.default(false),
+});
+
+/**
+ * S3 bucket configuration for static website hosting origins
+ */
+export const S3ConfigSchema = z.object({
+  /**
+   * AWS account ID where the S3 bucket is deployed
+   */
+  account: AwsAccountIdSchema,
+
+  /**
+   * AWS region where the S3 bucket is deployed
+   */
+  region: AwsRegionSchema,
+
+  /**
+   * S3 bucket name (optional - will be derived from naming convention if not provided)
+   */
+  bucketName: z.string().min(1).optional(),
 });
 
 /**
@@ -184,14 +218,24 @@ export const SubdomainConfigSchema = z.object({
   type: SubdomainTypeSchema,
 
   /**
+   * Brand identifier for this subdomain (e.g., "savvue", "timisly")
+   */
+  brand: z.string().min(1).optional(),
+
+  /**
    * CloudFront distribution configuration
    */
   cloudfront: CloudFrontConfigSchema.optional(),
 
   /**
-   * Direct ALB configuration (when CloudFront is not used)
+   * Direct ALB configuration (when CloudFront is not used or for ALB origins)
    */
   alb: AlbConfigSchema.optional(),
+
+  /**
+   * S3 bucket configuration for static website origins
+   */
+  s3: S3ConfigSchema.optional(),
 
   /**
    * Whether this subdomain is enabled
@@ -351,6 +395,7 @@ export type CloudFrontOriginType = z.infer<typeof CloudFrontOriginTypeSchema>;
 export type WafConfig = z.infer<typeof WafConfigSchema>;
 export type CloudFrontConfig = z.infer<typeof CloudFrontConfigSchema>;
 export type AlbConfig = z.infer<typeof AlbConfigSchema>;
+export type S3Config = z.infer<typeof S3ConfigSchema>;
 export type SubdomainConfig = z.infer<typeof SubdomainConfigSchema>;
 export type DomainDelegation = z.infer<typeof DomainDelegationSchema>;
 export type CertificateConfig = z.infer<typeof CertificateConfigSchema>;

@@ -52,7 +52,6 @@ export type {
   OrganizationalUnitConfig,
   ConfigMode,
   AccountConfig,
-  AlbOriginDiscovery,
   GitHubDeployPermissions,
   Project,
   ProjectEnvironment,

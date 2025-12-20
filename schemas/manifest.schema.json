@@ -702,6 +702,10 @@
                           "type": "string",
                           "enum": ["marketing", "app", "api", "custom"]
                         },
+                        "brand": {
+                          "type": "string",
+                          "minLength": 1
+                        },
                         "cloudfront": {
                           "type": "object",
                           "properties": {
@@ -758,9 +762,29 @@
                               "type": "string",
                               "minLength": 1
                             },
+                            "originHostname": {
+                              "type": "string",
+                              "minLength": 1
+                            },
                             "wafEnabled": {
                               "$ref": "11/organization/properties/enabled",
                               "default": false
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "s3": {
+                          "type": "object",
+                          "properties": {
+                            "account": {
+                              "$ref": "11/deployment/properties/accountId"
+                            },
+                            "region": {
+                              "$ref": "11/deployment/properties/region"
+                            },
+                            "bucketName": {
+                              "type": "string",
+                              "minLength": 1
                             }
                           },
                           "required": ["account", "region"],
@@ -899,74 +923,6 @@
           "errorMessage": {
             "required": {
               "registeredDomains": "Missing required property: registeredDomains"
-            }
-          }
-        },
-        "albOriginDiscovery": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
-            "ssmParameterPrefix": {
-              "type": "string"
-            },
-            "targets": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "projectName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "environments": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "accountId": {
-                          "$ref": "9/deployment/properties/accountId"
-                        },
-                        "region": {
-                          "$ref": "9/deployment/properties/region"
-                        }
-                      },
-                      "required": ["name", "accountId", "region"],
-                      "additionalProperties": false,
-                      "errorMessage": {
-                        "required": {
-                          "name": "Missing required property: name",
-                          "accountId": "Missing required property: accountId",
-                          "region": "Missing required property: region"
-                        }
-                      }
-                    },
-                    "minItems": 1
-                  }
-                },
-                "required": ["projectName", "environments"],
-                "additionalProperties": false,
-                "errorMessage": {
-                  "required": {
-                    "projectName": "Missing required property: projectName",
-                    "environments": "Missing required property: environments"
-                  }
-                }
-              },
-              "minItems": 1
-            }
-          },
-          "required": ["targets"],
-          "additionalProperties": false,
-          "errorMessage": {
-            "required": {
-              "targets": "Missing required property: targets"
             }
           }
         },
@@ -1150,6 +1106,10 @@
                   "items": {
                     "type": "object",
                     "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
                       "type": {
                         "type": "string",
                         "enum": ["webapp", "api", "worker"]

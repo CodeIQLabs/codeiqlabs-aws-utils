@@ -13,7 +13,6 @@ export * from './identity-center';
 export * from './iam';
 export * from './github-oidc';
 export * from './aurora';
-export * from './alb-origin-discovery';
 export * from './github-deploy-permissions';
 export * from './projects';
 export * from './domains';
@@ -64,13 +63,6 @@ export {
   // Aurora schemas
   AuroraConfigSchema,
 } from './aurora';
-
-export {
-  // ALB Origin Discovery schemas
-  AlbOriginDiscoverySchema,
-  AlbOriginDiscoveryTargetSchema,
-  AlbOriginDiscoveryEnvironmentSchema,
-} from './alb-origin-discovery';
 
 export {
   // GitHub deploy permissions schemas
@@ -183,13 +175,6 @@ export type {
   // GitHub deploy permissions types
   GitHubDeployPermissions,
 } from './github-deploy-permissions';
-
-export type {
-  // ALB Origin Discovery types
-  AlbOriginDiscovery,
-  AlbOriginDiscoveryTarget,
-  AlbOriginDiscoveryEnvironment,
-} from './alb-origin-discovery';
 
 export type {
   // Project types

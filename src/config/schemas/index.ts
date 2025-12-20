@@ -63,8 +63,6 @@ export {
   GitHubOidcSchema,
   // Aurora schemas
   AuroraConfigSchema,
-  // ALB Origin Discovery schemas
-  AlbOriginDiscoverySchema,
   // Project schemas
   ProjectEnvironmentSchema,
   ProjectSchema,
@@ -150,8 +148,6 @@ export type {
   GitHubOidc,
   // Aurora types
   AuroraConfig,
-  // ALB Origin Discovery types
-  AlbOriginDiscovery,
   // Project types
   ProjectEnvironment,
   Project,
