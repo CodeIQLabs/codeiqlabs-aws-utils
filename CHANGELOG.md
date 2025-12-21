@@ -1,5 +1,12 @@
 # @codeiqlabs/aws-utils
 
+## 1.9.0
+
+### Minor Changes
+
+- 2e988dd: Add CloudFront origin zone schema support, update domain schemas for CloudFront origins,
+  and update @codeiqlabs/eslint-prettier-config to ^1.11.2
+
 ## 1.8.0
 
 ### Minor Changes
