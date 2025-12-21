@@ -900,6 +900,23 @@
                       }
                     }
                   },
+                  "originZones": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "nameServers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "minItems": 1
+                        }
+                      },
+                      "required": ["nameServers"],
+                      "additionalProperties": false
+                    }
+                  },
                   "tags": {
                     "$ref": "6/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
                   }
@@ -913,6 +930,32 @@
                 }
               },
               "minItems": 1
+            },
+            "originZoneDelegation": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "$ref": "5/organization/properties/enabled",
+                  "default": false
+                },
+                "environments": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "accountId": {
+                        "type": "string"
+                      },
+                      "region": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["accountId", "region"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
             },
             "defaultTags": {
               "$ref": "3/organization/properties/organizationalUnits/items/properties/accounts/items/properties/tags"
@@ -1333,6 +1376,28 @@
           "errorMessage": {
             "required": {
               "enabled": "Missing required property: enabled"
+            }
+          }
+        },
+        "originZones": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "brands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["enabled", "brands"],
+          "additionalProperties": false,
+          "errorMessage": {
+            "required": {
+              "enabled": "Missing required property: enabled",
+              "brands": "Missing required property: brands"
             }
           }
         }

@@ -326,6 +326,22 @@ export const UnifiedAppConfigSchema = z.object({
         .optional(),
     })
     .optional(),
+
+  /**
+   * Origin zones configuration
+   * Creates Route53 hosted zones for origin-{env}.{brand} subdomains
+   * Used for stable ALB origin hostnames that CloudFront can reference
+   */
+  originZones: z
+    .object({
+      enabled: z.boolean(),
+      /**
+       * Brand domains to create origin zones for
+       * Creates zones like: origin-nprd.savvue.com, origin-prod.savvue.com
+       */
+      brands: z.array(z.string()),
+    })
+    .optional(),
 });
 
 /**

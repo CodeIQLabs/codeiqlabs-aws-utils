@@ -357,9 +357,50 @@ export const RegisteredDomainSchema = z.object({
   certificates: z.array(CertificateConfigSchema).optional(),
 
   /**
+   * Origin zone NS delegation configuration
+   * Maps environment names (nprd, prod) to their NS server values
+   * Used by OriginZoneDelegationStack to create NS delegation records
+   * in the parent zone pointing to workload account's origin zones
+   */
+  originZones: z
+    .record(
+      z.string(), // environment name (nprd, prod)
+      z.object({
+        nameServers: z.array(z.string()).min(1),
+      }),
+    )
+    .optional(),
+
+  /**
    * Additional tags for domain resources
    */
   tags: TagsSchema.optional(),
+});
+
+/**
+ * Origin zone delegation environment configuration
+ */
+export const OriginZoneDelegationEnvSchema = z.object({
+  accountId: z.string(),
+  region: z.string(),
+});
+
+/**
+ * Origin zone delegation configuration
+ * Enables NS delegation from management account to workload accounts
+ * for origin-{env}.{brand} subdomains
+ */
+export const OriginZoneDelegationSchema = z.object({
+  /**
+   * Whether origin zone delegation is enabled
+   */
+  enabled: BooleanSchema.default(false),
+
+  /**
+   * Environment configurations for delegation
+   * Maps environment names (nprd, prod) to their account/region
+   */
+  environments: z.record(z.string(), OriginZoneDelegationEnvSchema).optional(),
 });
 
 /**
@@ -375,6 +416,12 @@ export const DomainManagementSchema = z.object({
    * List of registered domains to manage
    */
   registeredDomains: z.array(RegisteredDomainSchema).min(1),
+
+  /**
+   * Origin zone delegation configuration
+   * Enables NS delegation from management account to workload accounts
+   */
+  originZoneDelegation: OriginZoneDelegationSchema.optional(),
 
   /**
    * Default tags to apply to all domain resources
