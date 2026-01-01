@@ -34,6 +34,13 @@ export const GitHubRepositoryConfigSchema = z.object({
   branch: z.string().optional().default('main'),
   /** Allow version tags (e.g., 'v*.*.*') - defaults to true */
   allowTags: z.boolean().optional().default(true),
+  /**
+   * GitHub environments that can assume the role.
+   * When a job uses `environment: <name>`, the OIDC subject claim format is:
+   * repo:owner/repo:environment:environment_name
+   * @example ["nprd", "prod", "mgmt"]
+   */
+  environments: z.array(z.string()).optional().default([]),
 });
 
 export type GitHubRepositoryConfig = z.infer<typeof GitHubRepositoryConfigSchema>;
