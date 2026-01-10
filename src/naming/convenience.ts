@@ -5,7 +5,7 @@
  * Project-specific convenience classes live in separate files under ./projects.
  */
 
-import type { NamingConfig, TaggingOptions, ResourceNameOptions } from './types';
+import type { NamingConfig, TaggingOptions, ResourceNameOptions, StackNameOptions } from './types';
 import {
   generateStackName,
   generateExportName,
@@ -33,9 +33,21 @@ export class ResourceNaming {
   /**
    * Generate a CDK stack name with readable environment names
    * Uses display names like 'NonProd', 'Prod', 'Management', 'Shared', 'PreProd'
+   *
+   * @param component - Component name (PascalCase)
+   * @param options - Optional settings (skipEnvironment for single-account repos)
+   *
+   * @example
+   * // Multi-environment repo
+   * naming.stackName('VPC')
+   * // Returns: 'CodeIQLabs-SaaS-NonProd-VPC-Stack'
+   *
+   * // Single-account repo with skipEnvironment
+   * naming.stackName('Organizations', { skipEnvironment: true })
+   * // Returns: 'CodeIQLabs-Management-Organizations-Stack'
    */
-  stackName(component: string): string {
-    return generateStackName(this.config, component);
+  stackName(component: string, options?: StackNameOptions): string {
+    return generateStackName(this.config, component, options);
   }
 
   /**

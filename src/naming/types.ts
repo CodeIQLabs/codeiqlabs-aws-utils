@@ -93,6 +93,25 @@ export interface ResourceNameOptions {
   resourceType?: ResourceType;
 }
 
+/**
+ * Options for stack name generation
+ */
+export interface StackNameOptions {
+  /**
+   * Skip the environment segment in the stack name.
+   * Use for single-account repos like management-aws.
+   *
+   * Pattern with skipEnvironment=false (default):
+   *   {Company}-{Project}-{Environment}-{Component}-Stack
+   *   Example: CodeIQLabs-SaaS-NonProd-VPC-Stack
+   *
+   * Pattern with skipEnvironment=true:
+   *   {Company}-{Project}-{Component}-Stack
+   *   Example: CodeIQLabs-Management-Organizations-Stack
+   */
+  skipEnvironment?: boolean;
+}
+
 // ============================================================================
 // SSM Parameter Types
 // ============================================================================

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ISO8601DurationSchema, AwsAccountIdSchema, AwsRegionSchema } from '../base';
+import { ISO8601DurationSchema } from '../base';
 
 /**
  * GitHub OIDC configuration schemas for CodeIQLabs AWS projects
@@ -12,9 +12,9 @@ import { ISO8601DurationSchema, AwsAccountIdSchema, AwsRegionSchema } from '../b
 /**
  * Simple GitHub OIDC configuration (legacy)
  * Defines GitHub OIDC provider settings for CI/CD
+ * Presence implies enabled - no 'enabled' flag needed
  */
 export const GitHubOidcSchema = z.object({
-  enabled: z.boolean().default(true),
   repositoryPattern: z.string().min(1, 'Repository pattern is required'),
   roleName: z.string().min(1, 'Role name is required'),
   sessionDuration: ISO8601DurationSchema.optional(),
@@ -46,20 +46,6 @@ export const GitHubRepositoryConfigSchema = z.object({
 export type GitHubRepositoryConfig = z.infer<typeof GitHubRepositoryConfigSchema>;
 
 /**
- * Environment configuration for GitHub OIDC deployment
- */
-export const GitHubOidcEnvironmentSchema = z.object({
-  /** Environment name (e.g., 'nprd', 'prod') */
-  name: z.string().min(1, 'Environment name is required'),
-  /** AWS account ID for this environment */
-  accountId: AwsAccountIdSchema,
-  /** AWS region for this environment */
-  region: AwsRegionSchema,
-});
-
-export type GitHubOidcEnvironment = z.infer<typeof GitHubOidcEnvironmentSchema>;
-
-/**
  * Target configuration for GitHub OIDC
  * Defines which repositories can deploy to which environments
  */
@@ -83,8 +69,12 @@ export const GitHubOidcTargetSchema = z.object({
    * If not provided, derived from {company}-{project} pattern
    */
   ecsClusterPrefix: z.string().optional(),
-  /** Environments to deploy to */
-  environments: z.array(GitHubOidcEnvironmentSchema).min(1, 'At least one environment is required'),
+  /**
+   * Target environments to deploy to
+   * References environment names from the main environments section
+   * @example ["nprd", "prod", "mgmt"]
+   */
+  targetEnvironments: z.array(z.string()).min(1, 'At least one target environment is required'),
 });
 
 export type GitHubOidcTarget = z.infer<typeof GitHubOidcTargetSchema>;
@@ -92,10 +82,9 @@ export type GitHubOidcTarget = z.infer<typeof GitHubOidcTargetSchema>;
 /**
  * Full GitHub OIDC configuration for multi-project, multi-environment deployments
  * Creates OIDC identity provider and IAM roles in workload accounts
+ * Presence implies enabled - no 'enabled' flag needed
  */
 export const GitHubOidcConfigSchema = z.object({
-  /** Enable or disable the component */
-  enabled: z.boolean().default(true),
   /** Targets with their repository and environment configurations */
   targets: z.array(GitHubOidcTargetSchema).min(1, 'At least one target is required'),
 });

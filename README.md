@@ -3,7 +3,7 @@
 **Framework-agnostic AWS utilities for naming, tagging, manifest validation, and schema-driven
 configuration.**
 
-[![npm version](https://img.shields.io/npm/v/@codeiqlabs/aws-utils.svg)](https://www.npmjs.com/package/@codeiqlabs/aws-utils)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/CodeIQLabs/codeiqlabs-aws-utils?label=version)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.18-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4%2B-blue.svg)](https://www.typescriptlang.org/)
@@ -46,7 +46,7 @@ Used as the **shared foundation** for other CodeIQLabs infrastructure packages l
   - Single-account and multi-environment deployments
   - Component flags: `organization`, `identityCenter`, `domains`, `staticHosting`, `networking`,
     `deploymentPermissions`
-  - Flexible `deployment` + `environments` structure
+  - Convention-over-configuration: presence implies enabled (no `enabled: true` flags)
 
 ### 🏷️ Naming Utilities
 
@@ -171,7 +171,7 @@ const result = await loadManifest('./manifest.yaml');
 if (result.success) {
   console.log(`Loaded ${result.type} manifest`);
   console.log('Project:', result.data.project);
-  console.log('Deployment:', result.data.deployment);
+  console.log('Environments:', Object.keys(result.data.environments));
 } else {
   console.error('Validation failed:', result.error);
 }
@@ -297,7 +297,7 @@ Terraform, Pulumi, AWS SDK) without coupling to CDK.
 
 ## Status & Compatibility
 
-- **Current Version:** 1.7.1
+- **Current Version:** See badge above or [package.json](./package.json)
 - **Node.js:** >=18.18
 - **TypeScript:** >=5.4.0
 - **Module Support:** ESM + CommonJS (via tsup)

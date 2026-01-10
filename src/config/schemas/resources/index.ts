@@ -55,7 +55,6 @@ export {
   GitHubOidcSchema,
   GitHubOidcConfigSchema,
   GitHubRepositoryConfigSchema,
-  GitHubOidcEnvironmentSchema,
   GitHubOidcTargetSchema,
 } from './github-oidc';
 
@@ -76,11 +75,9 @@ export {
 } from './projects';
 
 export {
-  // Domain management schemas
+  // Domain management schemas (simplified)
   DomainManagementSchema,
   RegisteredDomainSchema,
-  DomainDelegationSchema,
-  CertificateConfigSchema,
   HostedZoneIdSchema,
   DomainNameSchema,
 } from './domains';
@@ -162,7 +159,6 @@ export type {
   GitHubOidc,
   GitHubOidcConfig,
   GitHubRepositoryConfig,
-  GitHubOidcEnvironment,
   GitHubOidcTarget,
 } from './github-oidc';
 
@@ -183,16 +179,11 @@ export type {
 } from './projects';
 
 export type {
-  // Domain management types
+  // Domain management types (simplified)
   DomainManagement,
   RegisteredDomain,
-  DomainDelegation,
-  CertificateConfig,
   HostedZoneId,
   DomainName,
-  CertificateKeyAlgorithm,
-  CertificateValidationMethod,
-  DomainRegistrar,
 } from './domains';
 
 export type {

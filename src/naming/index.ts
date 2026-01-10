@@ -18,6 +18,7 @@ export type {
   IAMNamingOptions,
   S3NamingOptions,
   ResourceType,
+  StackNameOptions,
   BaseParamOpts,
   StringParamOpts,
   BatchParamOpts,

@@ -30,6 +30,11 @@ export {
 export type {
   // Unified application config
   UnifiedAppConfig,
+  SaasApp,
+  SaasEdgeApp,
+  SaasWorkloadApp,
+  DistributionType,
+  ServiceType,
   DeploymentTarget,
   EnvironmentConfig,
   ManagementConfig,

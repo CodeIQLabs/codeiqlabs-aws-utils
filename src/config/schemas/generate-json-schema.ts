@@ -34,10 +34,10 @@ function generateUnifiedSchema(schemasDir: string): void {
       name: 'CodeIQLabsAwsManifest',
       basePath: ['$defs'], // Place shared components under $defs
       $refStrategy: 'relative', // Encourage $ref usage for reusability
-      target: 'jsonSchema2020-12', // Use latest JSON Schema specification
+      target: 'jsonSchema7', // Use JSON Schema draft-07 for compatibility
       definitions: {}, // Allow for shared definitions
       errorMessages: false, // Clean output without error messages
-    });
+    }) as Record<string, unknown>;
 
     // Enhance the generated schema with proper metadata and optimized primitives
     const enhancedSchema = {
@@ -49,7 +49,7 @@ function generateUnifiedSchema(schemasDir: string): void {
       ...unifiedSchema,
       $defs: {
         ...createOptimizedPrimitives(),
-        ...(unifiedSchema.$defs || {}),
+        ...((unifiedSchema.$defs as Record<string, unknown>) || {}),
       },
       // Strict validation at root level
       unevaluatedProperties: false,

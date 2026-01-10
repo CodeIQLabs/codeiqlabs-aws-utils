@@ -13,9 +13,19 @@ export * from './unified';
  */
 export {
   UnifiedAppConfigSchema,
+  SaasAppSchema,
+  SaasEdgeAppSchema,
+  SaasWorkloadAppSchema,
+  DistributionTypeSchema,
+  ServiceTypeSchema,
   validateUnifiedAppConfig,
   safeValidateUnifiedAppConfig,
   type UnifiedAppConfig,
+  type SaasApp,
+  type SaasEdgeApp,
+  type SaasWorkloadApp,
+  type DistributionType,
+  type ServiceType,
   type DeploymentTarget,
   type EnvironmentConfig,
 } from './unified';

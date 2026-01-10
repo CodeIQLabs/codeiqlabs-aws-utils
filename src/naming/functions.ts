@@ -9,6 +9,7 @@ import type {
   IAMNamingOptions,
   S3NamingOptions,
   ResourceNameOptions,
+  StackNameOptions,
 } from './types';
 import { validateEnvironment, getEnvironmentDisplayName } from '../constants/environments';
 
@@ -142,28 +143,41 @@ function sanitizeResourceName(name: string, resourceType?: ResourceType): string
 /**
  * Generates a standardized CDK stack name with readable environment names
  *
- * Pattern (hardcoded): {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
+ * Default pattern: {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
+ * With skipEnvironment: {Company}-{Project}-{Component}-Stack
  *
  * Uses display names like 'NonProd', 'Prod', 'Management', 'Shared', 'PreProd'
  * Component names must be PascalCase (enforced at the orchestrator level)
  *
+ * @param config - Naming configuration
+ * @param component - Component name (PascalCase)
+ * @param options - Optional settings (skipEnvironment for single-account repos)
+ *
  * @example
- * // With company specified
+ * // Multi-environment repo (saas-aws, customization-aws)
  * generateStackName({ company: 'CodeIQLabs', project: 'SaaS', environment: 'nprd' }, 'VPC')
  * // Returns: 'CodeIQLabs-SaaS-NonProd-VPC-Stack'
  *
- * // Without company (uses default 'CodeIQLabs')
- * generateStackName({ project: 'Management', environment: 'mgmt' }, 'Organizations')
- * // Returns: 'CodeIQLabs-Management-Management-Organizations-Stack'
+ * // Single-account repo (management-aws) with skipEnvironment
+ * generateStackName({ company: 'CodeIQLabs', project: 'Management', environment: 'mgmt' }, 'Organizations', { skipEnvironment: true })
+ * // Returns: 'CodeIQLabs-Management-Organizations-Stack'
  */
-export function generateStackName(config: NamingConfig, component: string): string {
+export function generateStackName(
+  config: NamingConfig,
+  component: string,
+  options?: StackNameOptions,
+): string {
   validateNamingConfig(config);
 
   const company = config.company || DEFAULT_COMPANY;
-  const displayEnv = getEnvironmentDisplayName(config.environment);
 
-  // Hardcoded pattern: {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
-  // Component names are already PascalCase (hardcoded in component-orchestrator.ts)
+  if (options?.skipEnvironment) {
+    // Pattern for single-account repos: {Company}-{Project}-{Component}-Stack
+    return `${company}-${config.project}-${component}-Stack`;
+  }
+
+  // Default pattern: {Company}-{Project}-{DisplayEnvironment}-{Component}-Stack
+  const displayEnv = getEnvironmentDisplayName(config.environment);
   return `${company}-${config.project}-${displayEnv}-${component}-Stack`;
 }
 

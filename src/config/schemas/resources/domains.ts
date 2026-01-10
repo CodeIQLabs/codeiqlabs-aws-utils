@@ -1,24 +1,20 @@
 import { z } from 'zod';
-import {
-  BooleanSchema,
-  DescriptionSchema,
-  TagsSchema,
-  AwsAccountIdSchema,
-  EnvironmentSchema,
-  AwsRegionSchema,
-} from '../base';
 
 /**
  * Domain management configuration schemas for CodeIQLabs AWS projects
  *
- * This module provides validation schemas for centralized multi-account domain management,
- * including Route53 hosted zones, CloudFront distributions, ACM certificates, DNS records,
- * and cross-account delegation.
+ * Simplified schema for convention-over-configuration approach.
+ * Subdomains are derived from saasApps, not enumerated in the manifest.
  *
  * Architecture:
  * - Management Account: Hosts Route53 zones, CloudFront distributions, and ACM certs (us-east-1)
  * - Workload Accounts: Host application infrastructure (ALBs, ECS, etc.)
- * - DNS Records: ALIAS records in Management account point to CloudFront/ALB endpoints
+ * - CloudFront uses VPC Origins for private ALB connectivity
+ *
+ * Derived Subdomains (from saasApps):
+ * - Marketing brands: {domain} (apex), www.{domain} → S3 Origin
+ * - App brands: app.{domain}, {env}-app.{domain} → VPC Origin
+ * - API brands: api.{domain}, {env}-api.{domain} → VPC Origin (if hasApi)
  */
 
 /**
@@ -46,276 +42,11 @@ export const DomainNameSchema = z
   .max(253);
 
 /**
- * SSL certificate key algorithm options
- */
-export const CertificateKeyAlgorithmSchema = z.enum([
-  'RSA_1024',
-  'RSA_2048',
-  'RSA_3072',
-  'RSA_4096',
-  'EC_prime256v1',
-  'EC_secp384r1',
-  'EC_secp521r1',
-]);
-
-/**
- * SSL certificate validation method
- */
-export const CertificateValidationMethodSchema = z.enum(['DNS', 'EMAIL']);
-
-/**
- * Domain registrar options
- */
-export const DomainRegistrarSchema = z.enum(['route53', 'external']);
-
-/**
- * Subdomain type classification
- */
-export const SubdomainTypeSchema = z.enum([
-  'marketing', // Marketing/landing pages (e.g., www.example.com)
-  'app', // Application frontend (e.g., app.example.com)
-  'api', // API endpoints (e.g., api.example.com)
-  'custom', // Custom subdomain type
-]);
-
-/**
- * CloudFront origin type
- */
-export const CloudFrontOriginTypeSchema = z.enum([
-  's3', // S3 bucket origin
-  'alb', // Application Load Balancer origin
-  'custom', // Custom origin (HTTP/HTTPS endpoint)
-]);
-
-/**
- * WAF configuration for a CloudFront distribution
- *
- * Small, functional block used to select a WAF profile (prod vs nprd)
- * and, for restricted profiles, provide an allowlist of IP CIDR ranges.
- */
-export const WafConfigSchema = z.object({
-  /**
-   * WAF profile to apply to this distribution
-   * - "prod": open to the internet (can include managed rules)
-   * - "nprd": IP-restricted using allowedIpCidrs
-   */
-  profile: z.enum(['prod', 'nprd']).default('prod'),
-
-  /**
-   * Optional list of allowed IP CIDR ranges (only meaningful for restricted profiles like "nprd")
-   */
-  allowedIpCidrs: z.array(z.string()).optional(),
-});
-
-/**
- * CloudFront distribution configuration for a subdomain
- */
-export const CloudFrontConfigSchema = z.object({
-  /**
-   * Whether CloudFront is enabled for this subdomain
-   */
-  enabled: BooleanSchema.default(false),
-
-  /**
-   * Origin type for the CloudFront distribution
-   */
-  originType: CloudFrontOriginTypeSchema.optional(),
-
-  /**
-   * Whether to enable AWS WAF for this distribution
-   */
-  wafEnabled: BooleanSchema.default(false),
-
-  /**
-   * WAF configuration block used to select WAF profile and optional IP allowlist
-   */
-  wafConfig: WafConfigSchema.optional(),
-
-  /**
-   * Price class for CloudFront distribution
-   */
-  priceClass: z
-    .enum(['PriceClass_100', 'PriceClass_200', 'PriceClass_All'])
-    .default('PriceClass_100'),
-
-  /**
-   * Additional CloudFront configuration
-   */
-  tags: TagsSchema.optional(),
-});
-
-/**
- * Application Load Balancer configuration for CloudFront ALB origins
- *
- * Supports two modes:
- * 1. originHostname mode: Uses a stable DNS hostname (e.g., webapp.origin-prod.savvue.com)
- *    that points to the ALB. This decouples CloudFront from ALB changes.
- * 2. Direct mode: Uses account/region/name to look up the ALB directly.
- */
-export const AlbConfigSchema = z.object({
-  /**
-   * AWS account ID where the ALB is deployed
-   * Optional when originHostname is provided
-   */
-  account: AwsAccountIdSchema.optional(),
-
-  /**
-   * AWS region where the ALB is deployed
-   * Optional when originHostname is provided
-   */
-  region: AwsRegionSchema.optional(),
-
-  /**
-   * ALB name or identifier for lookup
-   */
-  name: z.string().min(1).optional(),
-
-  /**
-   * Stable origin hostname for CloudFront to use as ALB origin
-   * Format: {service}.origin-{env}.{brand} (e.g., webapp.origin-prod.savvue.com)
-   * This is the preferred approach as it decouples CloudFront from ALB changes
-   */
-  originHostname: z.string().min(1).optional(),
-
-  /**
-   * Whether to enable WAF for the ALB
-   */
-  wafEnabled: BooleanSchema.default(false),
-});
-
-/**
- * S3 bucket configuration for static website hosting origins
- */
-export const S3ConfigSchema = z.object({
-  /**
-   * AWS account ID where the S3 bucket is deployed
-   */
-  account: AwsAccountIdSchema,
-
-  /**
-   * AWS region where the S3 bucket is deployed
-   */
-  region: AwsRegionSchema,
-
-  /**
-   * S3 bucket name (optional - will be derived from naming convention if not provided)
-   */
-  bucketName: z.string().min(1).optional(),
-});
-
-/**
- * Subdomain configuration with CloudFront and DNS settings
- */
-export const SubdomainConfigSchema = z.object({
-  /**
-   * Fully qualified subdomain name (e.g., "app.example.com", "www.example.com")
-   */
-  name: DomainNameSchema,
-
-  /**
-   * Subdomain type classification
-   */
-  type: SubdomainTypeSchema,
-
-  /**
-   * Brand identifier for this subdomain (e.g., "savvue", "timisly")
-   */
-  brand: z.string().min(1).optional(),
-
-  /**
-   * CloudFront distribution configuration
-   */
-  cloudfront: CloudFrontConfigSchema.optional(),
-
-  /**
-   * Direct ALB configuration (when CloudFront is not used or for ALB origins)
-   */
-  alb: AlbConfigSchema.optional(),
-
-  /**
-   * S3 bucket configuration for static website origins
-   */
-  s3: S3ConfigSchema.optional(),
-
-  /**
-   * Whether this subdomain is enabled
-   */
-  enabled: BooleanSchema.default(true),
-
-  /**
-   * Additional tags for subdomain resources
-   */
-  tags: TagsSchema.optional(),
-});
-
-/**
- * Cross-account domain delegation configuration (for NS record delegation)
- */
-export const DomainDelegationSchema = z.object({
-  /**
-   * Subdomain to delegate (e.g., "www", "staging", "api")
-   */
-  subdomain: z.string().min(1).max(63),
-
-  /**
-   * Target AWS account ID where the subdomain will be managed
-   */
-  targetAccount: AwsAccountIdSchema,
-
-  /**
-   * Target environment for the delegation
-   */
-  targetEnvironment: EnvironmentSchema,
-
-  /**
-   * Purpose or description of the delegation
-   */
-  purpose: DescriptionSchema,
-
-  /**
-   * Whether to create the delegation automatically
-   */
-  enabled: BooleanSchema.default(true),
-
-  /**
-   * Additional tags for the delegation records
-   */
-  tags: TagsSchema.optional(),
-});
-
-/**
- * SSL certificate configuration
- */
-export const CertificateConfigSchema = z.object({
-  /**
-   * Domain names to include in the certificate
-   * First domain is the primary, others are Subject Alternative Names (SANs)
-   */
-  domains: z.array(DomainNameSchema).min(1),
-
-  /**
-   * Certificate validation method
-   */
-  validationMethod: CertificateValidationMethodSchema.default('DNS'),
-
-  /**
-   * Key algorithm for the certificate
-   */
-  keyAlgorithm: CertificateKeyAlgorithmSchema.default('RSA_2048'),
-
-  /**
-   * Whether to enable automatic renewal
-   */
-  autoRenew: BooleanSchema.default(true),
-
-  /**
-   * Additional tags for the certificate
-   */
-  tags: TagsSchema.optional(),
-});
-
-/**
  * Registered domain configuration
+ *
+ * Defines a root domain hosted in the management account with optional delegation role.
+ * Hosted zone ID is optional for importing existing zones.
+ * All subdomains are derived from saasApps/saasEdge configuration.
  */
 export const RegisteredDomainSchema = z.object({
   /**
@@ -330,103 +61,46 @@ export const RegisteredDomainSchema = z.object({
   hostedZoneId: HostedZoneIdSchema.optional(),
 
   /**
-   * Domain registrar
+   * Whether to create a cross-account delegation role for this domain
+   * When true, creates an IAM role that allows workload accounts to create NS records
+   * for subdomain delegation (e.g., nprd.savvue.com)
+   * @default false
    */
-  registrar: DomainRegistrarSchema.default('route53'),
+  createDelegationRole: z.boolean().optional(),
 
   /**
-   * Whether to enable automatic renewal
+   * Environments that are allowed to assume the delegation role
+   * Only used when createDelegationRole is true
+   * References keys from the environments section (e.g., ["nprd", "prod"])
    */
-  autoRenew: BooleanSchema.default(true),
-
-  /**
-   * Subdomain configurations with CloudFront and DNS settings
-   */
-  subdomains: z.array(SubdomainConfigSchema).optional(),
-
-  /**
-   * Cross-account subdomain delegations (NS record delegation)
-   */
-  delegations: z.array(DomainDelegationSchema).optional(),
-
-  /**
-   * SSL certificates to manage for this domain
-   * Note: Certificates for CloudFront must be in us-east-1
-   * Certificates for ALB must be in the same region as the ALB
-   */
-  certificates: z.array(CertificateConfigSchema).optional(),
-
-  /**
-   * Origin zone NS delegation configuration
-   * Maps environment names (nprd, prod) to their NS server values
-   * Used by OriginZoneDelegationStack to create NS delegation records
-   * in the parent zone pointing to workload account's origin zones
-   */
-  originZones: z
-    .record(
-      z.string(), // environment name (nprd, prod)
-      z.object({
-        nameServers: z.array(z.string()).min(1),
-      }),
-    )
-    .optional(),
-
-  /**
-   * Additional tags for domain resources
-   */
-  tags: TagsSchema.optional(),
-});
-
-/**
- * Origin zone delegation environment configuration
- */
-export const OriginZoneDelegationEnvSchema = z.object({
-  accountId: z.string(),
-  region: z.string(),
-});
-
-/**
- * Origin zone delegation configuration
- * Enables NS delegation from management account to workload accounts
- * for origin-{env}.{brand} subdomains
- */
-export const OriginZoneDelegationSchema = z.object({
-  /**
-   * Whether origin zone delegation is enabled
-   */
-  enabled: BooleanSchema.default(false),
-
-  /**
-   * Environment configurations for delegation
-   * Maps environment names (nprd, prod) to their account/region
-   */
-  environments: z.record(z.string(), OriginZoneDelegationEnvSchema).optional(),
+  allowedEnvironments: z.array(z.string()).optional(),
 });
 
 /**
  * Complete domain management configuration
+ *
+ * Consolidates all domain-related configuration:
+ * - Registered domains with optional delegation roles
+ * - WAF IP restrictions for NPRD environments
+ *
+ * Presence of this section implies domain management is enabled.
+ * No 'enabled' flag needed - convention over configuration.
  */
 export const DomainManagementSchema = z.object({
   /**
-   * Whether domain management is enabled
+   * IP CIDRs allowed to access NPRD CloudFront distributions via WAF
+   * This applies to ALL NPRD distributions across all brands (savvue, timisly, etc.)
+   * Used to restrict access to development/staging environments
+   * @example ["142.186.22.174/32"]
    */
-  enabled: BooleanSchema.default(true),
+  nprdAllowedCidrsWaf: z.array(z.string()).optional(),
 
   /**
    * List of registered domains to manage
+   * Each domain can optionally have a cross-account delegation role
+   * Subdomains are derived from saasApps/saasEdge, not enumerated here
    */
-  registeredDomains: z.array(RegisteredDomainSchema).min(1),
-
-  /**
-   * Origin zone delegation configuration
-   * Enables NS delegation from management account to workload accounts
-   */
-  originZoneDelegation: OriginZoneDelegationSchema.optional(),
-
-  /**
-   * Default tags to apply to all domain resources
-   */
-  defaultTags: TagsSchema.optional(),
+  registeredDomains: z.array(RegisteredDomainSchema).optional(),
 });
 
 /**
@@ -434,18 +108,6 @@ export const DomainManagementSchema = z.object({
  */
 export type HostedZoneId = z.infer<typeof HostedZoneIdSchema>;
 export type DomainName = z.infer<typeof DomainNameSchema>;
-export type CertificateKeyAlgorithm = z.infer<typeof CertificateKeyAlgorithmSchema>;
-export type CertificateValidationMethod = z.infer<typeof CertificateValidationMethodSchema>;
-export type DomainRegistrar = z.infer<typeof DomainRegistrarSchema>;
-export type SubdomainType = z.infer<typeof SubdomainTypeSchema>;
-export type CloudFrontOriginType = z.infer<typeof CloudFrontOriginTypeSchema>;
-export type WafConfig = z.infer<typeof WafConfigSchema>;
-export type CloudFrontConfig = z.infer<typeof CloudFrontConfigSchema>;
-export type AlbConfig = z.infer<typeof AlbConfigSchema>;
-export type S3Config = z.infer<typeof S3ConfigSchema>;
-export type SubdomainConfig = z.infer<typeof SubdomainConfigSchema>;
-export type DomainDelegation = z.infer<typeof DomainDelegationSchema>;
-export type CertificateConfig = z.infer<typeof CertificateConfigSchema>;
 export type RegisteredDomain = z.infer<typeof RegisteredDomainSchema>;
 export type DomainManagement = z.infer<typeof DomainManagementSchema>;
 

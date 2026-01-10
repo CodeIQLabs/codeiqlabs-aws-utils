@@ -58,6 +58,7 @@ export type {
   IdentityCenterConfig,
   // Unified application types
   UnifiedAppConfig,
+  SaasApp,
   DeploymentTarget,
   EnvironmentConfig,
 } from './schemas';

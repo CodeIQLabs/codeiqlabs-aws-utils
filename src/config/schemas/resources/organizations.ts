@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BooleanSchema, ConfigModeSchema, KeySchema, NameSchema } from '../base';
+import { ConfigModeSchema, KeySchema, NameSchema } from '../base';
 import { AccountConfigSchema } from './accounts';
 
 /**
@@ -70,9 +70,9 @@ export const FeatureSetSchema = z.enum(['ALL', 'CONSOLIDATED_BILLING']);
 
 /**
  * Organization configuration schema
+ * Presence implies enabled - no 'enabled' flag needed
  */
 export const OrganizationSchema = z.object({
-  enabled: BooleanSchema,
   rootId: OrganizationRootIdSchema,
   mode: ConfigModeSchema,
   featureSet: FeatureSetSchema.optional().default('ALL'),

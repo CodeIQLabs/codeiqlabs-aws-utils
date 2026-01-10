@@ -80,11 +80,9 @@ export {
   ConfigServiceConfigSchema,
   GuardDutyConfigSchema,
   SecurityHubConfigSchema,
-  // Domain management schemas
+  // Domain management schemas (simplified)
   DomainManagementSchema,
   RegisteredDomainSchema,
-  DomainDelegationSchema,
-  CertificateConfigSchema,
 } from './resources';
 
 // NEW: Unified application schema (recommended)
@@ -170,4 +168,9 @@ export type {
 } from './resources';
 
 // Unified application types
-export type { UnifiedAppConfig, DeploymentTarget, EnvironmentConfig } from './applications';
+export type {
+  UnifiedAppConfig,
+  SaasApp,
+  DeploymentTarget,
+  EnvironmentConfig,
+} from './applications';

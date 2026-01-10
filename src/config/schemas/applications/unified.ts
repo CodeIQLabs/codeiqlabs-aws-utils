@@ -19,70 +19,51 @@ import {
 /**
  * Unified Application Configuration Schema for CodeIQLabs AWS Projects
  *
- * This schema replaces the previous manifestType-based approach with a unified,
- * component-based configuration. Any component can be deployed to any account,
- * removing artificial constraints between "management" and "workload" manifests.
+ * This schema uses convention-over-configuration: presence of a section implies
+ * it is enabled. No 'enabled: true' flags are needed.
  *
  * Key principles:
  * - No manifestType field - components define what gets deployed
- * - Primary deployment target for single-account components
- * - Optional environments section for multi-environment components
- * - All component sections are optional - enable what you need
+ * - Presence implies enabled - if a section exists, it's deployed
+ * - Subdomains derived from saasApps - no enumeration needed
  * - Maximum flexibility - deploy any combination of components
  *
- * @example Single-account deployment (e.g., management account)
+ * @example Management account deployment
  * ```yaml
  * naming:
  *   company: "CodeIQLabs"
  *   project: "Core"
- * deployment:
- *   accountId: "682475224767"
- *   region: us-east-1
- * organization:
- *   enabled: true
- * identityCenter:
- *   enabled: true
- * domains:
- *   enabled: true
- * ```
- *
- * @example Multi-environment deployment (e.g., workload account)
- * ```yaml
- * naming:
- *   company: "CodeIQLabs"
- *   project: "SaaS"
- * deployment:
- *   accountId: "466279485605"
- *   region: us-east-1
  * environments:
- *   nprd:
- *     accountId: "466279485605"
+ *   mgmt:
+ *     accountId: "682475224767"
  *     region: us-east-1
- *   prod:
- *     accountId: "719640820326"
- *     region: us-east-1
- * networking:
- *   vpc:
- *     enabled: true
+ * organization:
+ *   rootId: "r-xxxx"
+ * identityCenter:
+ *   instanceArn: "arn:aws:sso:::instance/ssoins-xxx"
  * ```
  *
- * @example Mixed deployment (management + workload components)
+ * @example Customization deployment (infrastructure + CDN)
  * ```yaml
  * naming:
  *   company: "CodeIQLabs"
  *   project: "Customization"
- * deployment:
- *   accountId: "682475224767"
- *   region: us-east-1
  * environments:
+ *   mgmt:
+ *     accountId: "682475224767"
+ *     region: us-east-1
  *   nprd:
  *     accountId: "466279485605"
  *     region: us-east-1
- *   prod:
- *     accountId: "719640820326"
- *     region: us-east-1
- * githubOidc:
- *   enabled: true
+ * saasApps:
+ *   - name: savvue
+ *     domain: savvue.com
+ *     hasApi: true
+ * infrastructure:
+ *   targetEnvironments: [nprd, prod]
+ * domains:
+ *   registeredDomains:
+ *     - name: savvue.com
  * ```
  */
 
@@ -99,7 +80,7 @@ export const NamingConfigSchema = z.object({
   company: CompanyNameSchema,
 
   /**
-   * Project name - used in stack names (e.g., SaaS, Core, Customization)
+   * Project name - used in stack names (e.g., SaaS, Management, Customization)
    */
   project: ProjectNameSchema,
 
@@ -110,6 +91,20 @@ export const NamingConfigSchema = z.object({
    * @example "Platform Team", "DevOps", "John Smith"
    */
   owner: z.string().min(1).optional(),
+
+  /**
+   * Skip environment name in stack names.
+   * When true, stack names omit the environment segment.
+   *
+   * With skipEnvironmentName=false (default): {Company}-{Project}-{Environment}-{Component}-Stack
+   *   Example: CodeIQLabs-SaaS-NonProd-VPC-Stack
+   *
+   * With skipEnvironmentName=true: {Company}-{Project}-{Component}-Stack
+   *   Example: CodeIQLabs-Management-Organizations-Stack
+   *
+   * Use for repos that only deploy to one account (e.g., management-aws).
+   */
+  skipEnvironmentName: z.boolean().optional(),
 });
 
 /**
@@ -133,6 +128,136 @@ export const EnvironmentConfigSchema = z.object({
 });
 
 /**
+ * SaaS Application configuration schema (LEGACY - use saasEdge/saasWorkload instead)
+ *
+ * Defines a brand/application in the SaaS platform.
+ * Infrastructure is derived from these flags - no explicit component configuration needed.
+ */
+export const SaasAppSchema = z.object({
+  /**
+   * Brand/application name (e.g., "savvue", "equitrio")
+   * Used for resource naming: api-{name}, db-{name}, etc.
+   */
+  name: z.string().min(1),
+
+  /**
+   * Domain name for this brand (e.g., "savvue.com")
+   */
+  domain: z.string().min(1),
+
+  /**
+   * If true, this brand only has a marketing site (S3 bucket only)
+   * No webapp, API, or database infrastructure is created
+   * @default false
+   */
+  marketingOnly: z.boolean().optional(),
+
+  /**
+   * If true, creates a dedicated API service (api-{name}) for this brand
+   * The API receives DATABASE_URL_CORE and DATABASE_URL_{BRAND} environment variables
+   * @default false
+   */
+  hasApi: z.boolean().optional(),
+
+  /**
+   * If true, creates a webapp ECS service for this brand
+   * When not specified, webapp is created for all non-marketingOnly brands
+   * @default true (unless marketingOnly is true)
+   */
+  hasWebapp: z.boolean().optional(),
+});
+
+export type SaasApp = z.infer<typeof SaasAppSchema>;
+
+/**
+ * Distribution type for saasEdge configuration
+ * Defines what type of CloudFront distribution to create
+ */
+export const DistributionTypeSchema = z.enum(['marketing', 'webapp', 'api']);
+export type DistributionType = z.infer<typeof DistributionTypeSchema>;
+
+/**
+ * Service type for saasWorkload configuration
+ * Defines what type of ECS service to create
+ */
+export const ServiceTypeSchema = z.enum(['webapp', 'api']);
+export type ServiceType = z.infer<typeof ServiceTypeSchema>;
+
+/**
+ * SaaS Edge Configuration (customization-aws)
+ * Defines CloudFront distributions, S3 buckets, Route53 zones, and ACM certificates
+ * All resources created in management account
+ */
+export const SaasEdgeAppSchema = z.object({
+  /**
+   * Domain name for this brand (e.g., "savvue.com")
+   */
+  domain: z.string().min(1),
+
+  /**
+   * CloudFront distributions to create for this domain
+   * - marketing: Creates {domain} → CloudFront → S3 (static site)
+   * - webapp: Creates app.{domain} → CloudFront → VPC Origin → ALB
+   * - api: Creates api.{domain} → CloudFront → VPC Origin → ALB
+   */
+  distributions: z.array(
+    z.object({
+      type: DistributionTypeSchema,
+    }),
+  ),
+});
+
+export type SaasEdgeApp = z.infer<typeof SaasEdgeAppSchema>;
+
+/**
+ * SaaS Workload Configuration (saas-aws)
+ * Defines ECS services, Aurora databases, Secrets, and Origin Zones
+ * All resources created in workload accounts (nprd/prod)
+ */
+export const SaasWorkloadAppSchema = z.object({
+  /**
+   * Brand/application name (e.g., "savvue", "equitrio")
+   * Used for resource naming: api-{name}, db-{name}, etc.
+   */
+  name: z.string().min(1),
+
+  /**
+   * Domain name for this brand (e.g., "savvue.com")
+   * Used for origin hosted zones
+   */
+  domain: z.string().min(1),
+
+  /**
+   * ECS services to create for this brand
+   * - webapp: Creates webapp-{name} ECS service + Aurora DB + Secrets
+   * - api: Creates api-{name} ECS service (shares Aurora DB)
+   */
+  services: z.array(
+    z.object({
+      type: ServiceTypeSchema,
+    }),
+  ),
+
+  /**
+   * Stripe configuration for this brand
+   * Can be environment-specific (stripe.nprd, stripe.prod) or global
+   * Price IDs are injected as environment variables in ECS services
+   */
+  stripe: z
+    .record(
+      z.object({
+        /** Monthly subscription price ID */
+        priceIdMonthly: z.string().optional(),
+        /** Annual subscription price ID */
+        priceIdAnnual: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+export type SaasWorkloadApp = z.infer<typeof SaasWorkloadAppSchema>;
+
+/**
  * Unified Application Configuration Schema
  *
  * This single schema supports all deployment patterns:
@@ -150,20 +275,89 @@ export const UnifiedAppConfigSchema = z.object({
   naming: NamingConfigSchema,
 
   /**
-   * Primary deployment target
-   * Used for single-account components (organization, identityCenter, domains)
+   * Environment deployment configurations
+   * Required: at least one environment must be defined (e.g., mgmt, nprd, prod)
+   * Orchestrator derives deployment target from 'mgmt' environment or first environment
    */
-  deployment: DeploymentTargetSchema,
+  environments: z.record(EnvironmentConfigSchema),
 
   /**
-   * Optional: Multi-environment deployment configurations
-   * Used for components that deploy to multiple accounts (networking, etc.)
+   * Default configuration values for ECS and Aurora
+   * These are used when saasApps-derived infrastructure is created
    */
-  environments: z.record(EnvironmentConfigSchema).optional(),
+  defaults: z
+    .object({
+      ecs: z
+        .object({
+          webapp: z
+            .object({
+              cpu: z.number().default(256),
+              memoryMiB: z.number().default(512),
+              desiredCount: z.number().default(1),
+            })
+            .optional(),
+          api: z
+            .object({
+              cpu: z.number().default(512),
+              memoryMiB: z.number().default(1024),
+              desiredCount: z.number().default(1),
+            })
+            .optional(),
+        })
+        .optional(),
+      aurora: z
+        .object({
+          minCapacity: z.number().default(0.5),
+          maxCapacity: z.number().default(2),
+          engineVersion: z.string().default('16.4'),
+        })
+        .optional(),
+    })
+    .optional(),
+
+  /**
+   * SaaS Applications (Brands) - Convention-over-Configuration (LEGACY)
+   *
+   * Each entry defines a brand/application. Infrastructure is automatically derived:
+   * - All brands: S3 bucket for static hosting, database, secrets, origin zone
+   * - marketingOnly: true → Only S3 bucket (no webapp, API, or database)
+   * - hasApi: true → Creates api-{name} ECS service with DATABASE_URL_CORE + DATABASE_URL_{BRAND}
+   * - hasWebapp: true (default for non-marketing) → Creates webapp ECS service
+   *
+   * This replaces explicit compute.ecs.services[], staticHosting.sites[], etc.
+   *
+   * @deprecated Use saasEdge (customization-aws) and saasWorkload (saas-aws) instead
+   */
+  saasApps: z.array(SaasAppSchema).optional(),
+
+  /**
+   * SaaS Edge Configuration (customization-aws)
+   *
+   * Defines CloudFront distributions, S3 buckets, Route53 zones, and ACM certificates.
+   * All resources created in management account.
+   *
+   * Each entry defines distributions for a domain:
+   * - marketing: Creates {domain} → CloudFront → S3 (static site) via OAC
+   * - webapp: Creates app.{domain} → CloudFront → VPC Origin → ALB
+   * - api: Creates api.{domain} → CloudFront → VPC Origin → ALB
+   */
+  saasEdge: z.array(SaasEdgeAppSchema).optional(),
+
+  /**
+   * SaaS Workload Configuration (saas-aws)
+   *
+   * Defines ECS services, Aurora databases, Secrets, and Origin Zones.
+   * All resources created in workload accounts (nprd/prod).
+   *
+   * Each entry defines services for a brand:
+   * - webapp: Creates webapp-{name} ECS service + Aurora DB + Secrets
+   * - api: Creates api-{name} ECS service (shares Aurora DB)
+   */
+  saasWorkload: z.array(SaasWorkloadAppSchema).optional(),
 
   // ============================================================================
   // COMPONENT SECTIONS - All Optional
-  // Enable the components you need by including them with enabled: true
+  // Presence implies enabled - no 'enabled: true' flags needed
   // ============================================================================
 
   /**
@@ -204,12 +398,12 @@ export const UnifiedAppConfigSchema = z.object({
    * Networking configuration
    * Deploys to environments defined in the environments section
    * Creates VPCs, subnets, security groups, and network infrastructure
+   * Presence implies enabled - no 'enabled' flag needed
    */
   networking: z
     .object({
       vpc: z
         .object({
-          enabled: z.boolean(),
           cidr: z.string().optional(),
           maxAzs: z.number().min(1).max(3).optional(),
           natGateways: z.number().min(0).max(3).optional(),
@@ -241,30 +435,16 @@ export const UnifiedAppConfigSchema = z.object({
    * Static hosting configuration
    * Creates S3 buckets for static web app hosting (Expo Web builds)
    * CloudFront distribution is created in Management account
+   *
+   * When saasApps is present, static hosting is derived from it.
+   * Presence implies enabled - no 'enabled' flag needed
    */
   staticHosting: z
     .object({
-      enabled: z.boolean(),
       /**
        * Management account ID for CloudFront OAC access
        */
       managementAccountId: AwsAccountIdSchema.optional(),
-      /**
-       * Static site configuration for each brand
-       */
-      sites: z
-        .array(
-          z.object({
-            brand: z.string(),
-            /**
-             * Enable S3 bucket versioning for data protection
-             * Recommended for production environments to enable recovery from accidental deletions
-             * @default true
-             */
-            enableVersioning: z.boolean().default(true),
-          }),
-        )
-        .optional(),
     })
     .optional(),
 
@@ -272,10 +452,10 @@ export const UnifiedAppConfigSchema = z.object({
    * Secrets configuration
    * Creates AWS Secrets Manager secrets for application configuration
    * Secrets are created with placeholder values that need to be updated after deployment
+   * Presence implies enabled - no 'enabled' flag needed
    */
   secrets: z
     .object({
-      enabled: z.boolean(),
       /**
        * Secret retention period in days when deleted
        * @default 7
@@ -331,15 +511,77 @@ export const UnifiedAppConfigSchema = z.object({
    * Origin zones configuration
    * Creates Route53 hosted zones for origin-{env}.{brand} subdomains
    * Used for stable ALB origin hostnames that CloudFront can reference
+   * Presence implies enabled - no 'enabled' flag needed
    */
   originZones: z
     .object({
-      enabled: z.boolean(),
       /**
        * Brand domains to create origin zones for
        * Creates zones like: origin-nprd.savvue.com, origin-prod.savvue.com
        */
       brands: z.array(z.string()),
+    })
+    .optional(),
+
+  /**
+   * Infrastructure configuration for customization-aws
+   * Creates VPC, ALB, and VPC Origin stacks in workload accounts
+   * These resources are shared with saas-aws via SSM parameters
+   */
+  infrastructure: z
+    .object({
+      /**
+       * Target environments to deploy infrastructure to
+       * References keys from the environments section
+       */
+      targetEnvironments: z.array(z.string()).optional(),
+      /**
+       * When true, VPC/ALB are imported from customization-aws via SSM
+       * instead of being created by this stack.
+       * This requires customization-aws to be deployed first.
+       * @default false
+       */
+      importVpcFromSsm: z.boolean().optional(),
+      /**
+       * VPC configuration
+       */
+      vpc: z
+        .object({
+          cidr: z.string().optional(),
+          maxAzs: z.number().min(1).max(3).optional(),
+          natGateways: z.number().min(0).max(3).optional(),
+          enableFlowLogs: z.boolean().optional(),
+          flowLogsRetentionDays: z.number().optional(),
+        })
+        .optional(),
+      /**
+       * ALB configuration
+       */
+      alb: z
+        .object({
+          /**
+           * Whether the ALB is internal (private) or internet-facing
+           * @default true (internal for VPC Origins)
+           */
+          internal: z.boolean().optional(),
+        })
+        .optional(),
+      /**
+       * Common SSM parameters to deploy to workload accounts
+       * Values are derived from the environments section
+       */
+      commonParams: z
+        .object({
+          /**
+           * Create SSM parameters for account IDs
+           * When true, creates:
+           * - /codeiqlabs/org/account-id (from current environment's accountId)
+           * - /codeiqlabs/org/management-account-id (from environments.mgmt.accountId)
+           * @default false
+           */
+          accountIds: z.boolean().optional(),
+        })
+        .optional(),
     })
     .optional(),
 });

@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-  BooleanSchema,
   NameSchema,
   DescriptionSchema,
   TagsSchema,
@@ -207,16 +206,61 @@ export const TrustedTokenIssuerSchema = z.object({
 });
 
 /**
+ * Compact assignments map schema
+ * Format: { accountKey: { permissionSetName: [userKey1, userKey2] } }
+ *
+ * This is a human-friendly format that gets transformed to the array format.
+ *
+ * @example
+ * ```yaml
+ * assignments:
+ *   budgettrack-nprd:
+ *     AdministratorAccess: [amirf]
+ *     PowerUserAccess: [amirf, alif]
+ *   budgettrack-prod:
+ *     AdministratorAccess: [amirf]
+ * ```
+ */
+export const CompactAssignmentsMapSchema = z
+  .record(
+    KeySchema, // Account key (e.g., "budgettrack-nprd")
+    z.record(
+      NameSchema, // Permission set name (e.g., "AdministratorAccess")
+      z.array(KeySchema), // Array of user keys (e.g., ["amirf", "alif"])
+    ),
+  )
+  .transform((compactMap) => {
+    // Transform compact map to array of SSOAssignmentConfig
+    const assignments: z.infer<typeof SSOAssignmentConfigSchema>[] = [];
+
+    for (const [accountKey, permissionSets] of Object.entries(compactMap)) {
+      for (const [permissionSetName, userKeys] of Object.entries(permissionSets)) {
+        for (const userKey of userKeys) {
+          assignments.push({
+            principalType: 'USER' as const,
+            principalKey: userKey,
+            permissionSetName,
+            targetType: 'AWS_ACCOUNT' as const,
+            targetKey: accountKey,
+          });
+        }
+      }
+    }
+
+    return assignments;
+  });
+
+/**
  * Main Identity Center configuration schema
+ * Presence implies enabled - no 'enabled' flag needed
  */
 export const IdentityCenterSchema = z.object({
-  enabled: BooleanSchema,
   instanceArn: IdentityCenterInstanceArnSchema,
   identityStoreId: IdentityStoreIdSchema.optional(), // Required for user creation
   identitySource: IdentitySourceSchema.optional(),
   users: z.array(UserConfigSchema).optional(), // Users to create
   permissionSets: z.array(PermissionSetConfigSchema),
-  assignments: z.array(SSOAssignmentConfigSchema),
+  assignments: CompactAssignmentsMapSchema, // Compact map format that transforms to array
   applications: z.array(ApplicationConfigSchema).optional(),
   trustedTokenIssuers: z.array(TrustedTokenIssuerSchema).optional(),
   tags: RequiredTagsSchema, // Owner and ManagedBy are required
