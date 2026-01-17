@@ -13,6 +13,7 @@ export * from './identity-center';
 export * from './iam';
 export * from './github-oidc';
 export * from './aurora';
+export * from './dynamodb';
 export * from './github-deploy-permissions';
 export * from './projects';
 export * from './domains';
@@ -62,6 +63,11 @@ export {
   // Aurora schemas
   AuroraConfigSchema,
 } from './aurora';
+
+export {
+  // DynamoDB schemas
+  DynamoDBConfigSchema,
+} from './dynamodb';
 
 export {
   // GitHub deploy permissions schemas
@@ -166,6 +172,11 @@ export type {
   // Aurora types
   AuroraConfig,
 } from './aurora';
+
+export type {
+  // DynamoDB types
+  DynamoDBConfig,
+} from './dynamodb';
 
 export type {
   // GitHub deploy permissions types

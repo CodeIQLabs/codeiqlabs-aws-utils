@@ -103,6 +103,27 @@
               },
               "additionalProperties": false
             },
+            "lambda": {
+              "type": "object",
+              "properties": {
+                "memorySize": {
+                  "type": "number",
+                  "minimum": 128,
+                  "maximum": 10240,
+                  "default": 1024
+                },
+                "timeout": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 900,
+                  "default": 30
+                },
+                "eventBridgeBusName": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
             "aurora": {
               "type": "object",
               "properties": {
@@ -174,6 +195,10 @@
                     "type": {
                       "type": "string",
                       "enum": ["marketing", "webapp", "api"]
+                    },
+                    "originType": {
+                      "type": "string",
+                      "enum": ["alb", "apiGateway", "s3"]
                     }
                   },
                   "required": ["type"],
@@ -208,6 +233,18 @@
               "domain": {
                 "type": "string",
                 "minLength": 1
+              },
+              "webapp": {
+                "type": "boolean"
+              },
+              "lambdaApi": {
+                "type": "boolean"
+              },
+              "webappS3": {
+                "type": "boolean"
+              },
+              "marketingS3": {
+                "type": "boolean"
               },
               "services": {
                 "type": "array",
@@ -244,13 +281,11 @@
                 }
               }
             },
-            "required": ["name", "domain", "services"],
+            "required": ["name"],
             "additionalProperties": false,
             "errorMessage": {
               "required": {
-                "name": "Missing required property: name",
-                "domain": "Missing required property: domain",
-                "services": "Missing required property: services"
+                "name": "Missing required property: name"
               }
             }
           }
@@ -1204,6 +1239,60 @@
               "brands": "Missing required property: brands"
             }
           }
+        },
+        "lambda": {
+          "type": "object",
+          "properties": {
+            "functions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "memorySize": {
+                    "type": "number",
+                    "minimum": 128,
+                    "maximum": 10240
+                  },
+                  "timeout": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 900
+                  },
+                  "reservedConcurrentExecutions": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "environment": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "ecrRepositoryName": {
+                    "type": "string"
+                  },
+                  "imageTag": {
+                    "type": "string"
+                  }
+                },
+                "required": ["name"],
+                "additionalProperties": false,
+                "errorMessage": {
+                  "required": {
+                    "name": "Missing required property: name"
+                  }
+                }
+              }
+            },
+            "eventBridgeBusName": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         },
         "infrastructure": {
           "type": "object",

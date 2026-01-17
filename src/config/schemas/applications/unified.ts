@@ -177,11 +177,50 @@ export const DistributionTypeSchema = z.enum(['marketing', 'webapp', 'api']);
 export type DistributionType = z.infer<typeof DistributionTypeSchema>;
 
 /**
+ * Origin type for saasEdge distributions
+ * Defines what backend the CloudFront distribution routes to
+ * - alb: Routes to ALB (ECS Fargate containers)
+ * - apiGateway: Routes to API Gateway (Lambda functions)
+ * - s3: Routes to S3 bucket (static files for SPAs)
+ */
+export const OriginTypeSchema = z.enum(['alb', 'apiGateway', 's3']);
+export type OriginType = z.infer<typeof OriginTypeSchema>;
+
+/**
  * Service type for saasWorkload configuration
  * Defines what type of ECS service to create
  */
 export const ServiceTypeSchema = z.enum(['webapp', 'api']);
 export type ServiceType = z.infer<typeof ServiceTypeSchema>;
+
+/**
+ * SaaS Edge Distribution Configuration
+ * Defines a single CloudFront distribution
+ */
+export const SaasEdgeDistributionSchema = z.object({
+  /**
+   * Distribution type
+   * - marketing: Creates {domain} → CloudFront → S3 (static site)
+   * - webapp: Creates app.{domain} → CloudFront → ALB or S3
+   * - api: Creates api.{domain} → CloudFront → ALB or API Gateway
+   */
+  type: DistributionTypeSchema,
+
+  /**
+   * Origin type for webapp and API distributions
+   * - alb: Routes to ALB (ECS Fargate containers) - default for webapp
+   * - apiGateway: Routes to API Gateway (Lambda functions) - for api type only
+   * - s3: Routes to S3 bucket (static files) - for static webapps (SPAs)
+   *
+   * For 'marketing' type, origin is always S3 (originType is ignored).
+   * For 'webapp' type, defaults to 'alb' if not specified. Use 's3' for static SPAs.
+   * For 'api' type, defaults to 'alb' if not specified.
+   * @default 'alb'
+   */
+  originType: OriginTypeSchema.optional(),
+});
+
+export type SaasEdgeDistribution = z.infer<typeof SaasEdgeDistributionSchema>;
 
 /**
  * SaaS Edge Configuration (customization-aws)
@@ -197,51 +236,88 @@ export const SaasEdgeAppSchema = z.object({
   /**
    * CloudFront distributions to create for this domain
    * - marketing: Creates {domain} → CloudFront → S3 (static site)
-   * - webapp: Creates app.{domain} → CloudFront → VPC Origin → ALB
-   * - api: Creates api.{domain} → CloudFront → VPC Origin → ALB
+   * - webapp: Creates app.{domain} → CloudFront → ALB
+   * - api: Creates api.{domain} → CloudFront → ALB or API Gateway (based on originType)
    */
-  distributions: z.array(
-    z.object({
-      type: DistributionTypeSchema,
-    }),
-  ),
+  distributions: z.array(SaasEdgeDistributionSchema),
 });
 
 export type SaasEdgeApp = z.infer<typeof SaasEdgeAppSchema>;
 
 /**
  * SaaS Workload Configuration (saas-aws)
- * Defines ECS services, Aurora databases, Secrets, and Origin Zones
+ * Defines ECS services, Lambda APIs, S3 buckets, Aurora databases, Secrets, and Origin Zones
  * All resources created in workload accounts (nprd/prod)
+ *
+ * Convention-over-Configuration:
+ * - webapp: true → ECS Fargate service (serves React/Expo web app)
+ * - lambdaApi: true → Lambda function + API Gateway (event-driven, scales to zero)
+ * - webappS3: true → S3 bucket for static webapp hosting (React Native Web / Expo)
+ * - marketingS3: true → S3 bucket for marketing site hosting (Next.js static export)
  */
 export const SaasWorkloadAppSchema = z.object({
   /**
-   * Brand/application name (e.g., "savvue", "equitrio")
-   * Used for resource naming: api-{name}, db-{name}, etc.
+   * Brand/application name (e.g., "savvue", "equitrio", "core")
+   * Used for resource naming: api-{name}, db-{name}, webapp-{name}
    */
   name: z.string().min(1),
 
   /**
    * Domain name for this brand (e.g., "savvue.com")
-   * Used for origin hosted zones
+   * Optional for shared services like "core" that don't have a domain
    */
-  domain: z.string().min(1),
+  domain: z.string().min(1).optional(),
 
   /**
-   * ECS services to create for this brand
-   * - webapp: Creates webapp-{name} ECS service + Aurora DB + Secrets
-   * - api: Creates api-{name} ECS service (shares Aurora DB)
+   * Create an ECS Fargate webapp service for this brand
+   * Creates: webapp-{name} ECS service
+   * @default false
    */
-  services: z.array(
-    z.object({
-      type: ServiceTypeSchema,
-    }),
-  ),
+  webapp: z.boolean().optional(),
+
+  /**
+   * Create a Lambda API function for this brand
+   * Creates: Lambda api-{name} + database schema db-{name}
+   * Connects to Aurora via RDS Proxy
+   * @default false
+   */
+  lambdaApi: z.boolean().optional(),
+
+  /**
+   * Create an S3 bucket for static webapp hosting (React Native Web / Expo)
+   * Creates: S3 bucket webapp-{name} in workload account
+   * SSM Parameter: /codeiqlabs/saas/{env}/webapp/{name}/bucket-name
+   * CloudFront in management account accesses via cross-account OAC
+   * @default false
+   */
+  webappS3: z.boolean().optional(),
+
+  /**
+   * Create an S3 bucket for marketing site hosting (Next.js static export)
+   * Creates: S3 bucket static-{name} in workload account
+   * SSM Parameter: /codeiqlabs/saas/{env}/static/{name}/bucket-name
+   * CloudFront in management account accesses via cross-account OAC
+   * @default false
+   */
+  marketingS3: z.boolean().optional(),
+
+  /**
+   * LEGACY: ECS services array (deprecated, use webapp/lambdaApi instead)
+   * Kept for backward compatibility during migration
+   * @deprecated Use webapp: true and/or lambdaApi: true instead
+   */
+  services: z
+    .array(
+      z.object({
+        type: ServiceTypeSchema,
+      }),
+    )
+    .optional(),
 
   /**
    * Stripe configuration for this brand
    * Can be environment-specific (stripe.nprd, stripe.prod) or global
-   * Price IDs are injected as environment variables in ECS services
+   * Price IDs are injected as environment variables
    */
   stripe: z
     .record(
@@ -282,8 +358,8 @@ export const UnifiedAppConfigSchema = z.object({
   environments: z.record(EnvironmentConfigSchema),
 
   /**
-   * Default configuration values for ECS and Aurora
-   * These are used when saasApps-derived infrastructure is created
+   * Default configuration values for ECS, Lambda, and Aurora
+   * These are used when saasWorkload-derived infrastructure is created
    */
   defaults: z
     .object({
@@ -303,6 +379,20 @@ export const UnifiedAppConfigSchema = z.object({
               desiredCount: z.number().default(1),
             })
             .optional(),
+        })
+        .optional(),
+      lambda: z
+        .object({
+          /** Memory size in MB (more memory = more CPU = faster cold starts) */
+          memorySize: z.number().min(128).max(10240).default(1024),
+          /** Timeout in seconds */
+          timeout: z.number().min(1).max(900).default(30),
+          /**
+           * EventBridge bus name for async event publishing
+           * Supports {env} placeholder which is replaced with environment name
+           * @example "saas-{env}-events" → "saas-nprd-events"
+           */
+          eventBridgeBusName: z.string().optional(),
         })
         .optional(),
       aurora: z
@@ -520,6 +610,64 @@ export const UnifiedAppConfigSchema = z.object({
        * Creates zones like: origin-nprd.savvue.com, origin-prod.savvue.com
        */
       brands: z.array(z.string()),
+    })
+    .optional(),
+
+  /**
+   * Lambda functions configuration
+   * Creates Lambda functions from ECR images with VPC connectivity to RDS Proxy
+   * Used for API services in Lambda-first architecture
+   */
+  lambda: z
+    .object({
+      /**
+       * Lambda functions to create
+       */
+      functions: z
+        .array(
+          z.object({
+            /**
+             * Function name (e.g., 'api-core', 'api-savvue')
+             * Used for resource naming: saas-{env}-{name}
+             */
+            name: z.string().min(1),
+            /**
+             * Memory size in MB
+             * More memory = more CPU = faster cold starts
+             * @default 1024
+             */
+            memorySize: z.number().min(128).max(10240).optional(),
+            /**
+             * Timeout in seconds
+             * @default 30
+             */
+            timeout: z.number().min(1).max(900).optional(),
+            /**
+             * Reserved concurrent executions
+             * Set to 0 to disable the function
+             */
+            reservedConcurrentExecutions: z.number().min(0).optional(),
+            /**
+             * Additional environment variables
+             */
+            environment: z.record(z.string()).optional(),
+            /**
+             * ECR repository name override
+             * @default name (e.g., 'api-core')
+             */
+            ecrRepositoryName: z.string().optional(),
+            /**
+             * ECR image tag
+             * @default 'latest'
+             */
+            imageTag: z.string().optional(),
+          }),
+        )
+        .optional(),
+      /**
+       * EventBridge bus name for event publishing
+       */
+      eventBridgeBusName: z.string().optional(),
     })
     .optional(),
 
