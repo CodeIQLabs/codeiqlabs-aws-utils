@@ -228,10 +228,30 @@ cd ../codeiqlabs-aws-cdk && rm -rf node_modules pnpm-lock.yaml && pnpm install
 
 ## Anti-Patterns
 
-❌ **Don't add CDK-specific code here** - Use `@codeiqlabs/aws-cdk` for CDK constructs ❌ **Don't
-publish without running tests** - `prepublishOnly` script prevents this ❌ **Don't manually edit
-version numbers** - Use changesets workflow; CI handles versioning ❌ **Don't run
-`pnpm changeset:version` locally** - CI runs this automatically when merging the "Version Packages"
-PR ❌ **Don't hardcode versions in documentation** - Use dynamic badges or reference `package.json`
-❌ **Don't skip the build step** - Tests and publishing require compiled output ❌ **Don't commit
-dist/ or schemas/ to git** - Build artifacts are generated, not source
+- **Don't add CDK-specific code here** - Use `@codeiqlabs/aws-cdk` for CDK constructs
+- **Don't publish without running tests** - `prepublishOnly` script prevents this
+- **Don't manually edit version numbers** - Use changesets workflow; CI handles versioning
+- **Don't run `pnpm changeset:version` locally** - CI runs this automatically when merging the
+  "Version Packages" PR
+- **Don't hardcode versions in documentation** - Use dynamic badges or reference `package.json`
+- **Don't skip the build step** - Tests and publishing require compiled output
+- **Don't commit dist/ or schemas/ to git** - Build artifacts are generated, not source
+
+## Key Files
+
+| File/Directory                        | Purpose                                            |
+| ------------------------------------- | -------------------------------------------------- |
+| `src/config/schemas/`                 | Zod schemas for manifest validation                |
+| `src/config/schemas/manifest.ts`      | Root manifest schema                               |
+| `src/config/schemas/saas-workload.ts` | SaaS workload configuration schema                 |
+| `src/config/schemas/resources/`       | Resource-specific schemas (DynamoDB, Lambda, etc.) |
+| `src/naming/resource-naming.ts`       | Standardized resource naming utilities             |
+| `src/tagging/resource-tagging.ts`     | Consistent tagging utilities                       |
+| `src/helpers/env.ts`                  | Environment variable validation helpers            |
+| `src/constants.ts`                    | Shared constants (ENV_VALUES, etc.)                |
+| `src/index.ts`                        | Main package exports                               |
+| `package.json`                        | Package metadata, dual ESM/CJS exports             |
+
+## Source of Truth
+
+[codeiqlabs-docs](../codeiqlabs-docs/AGENTS.md)
