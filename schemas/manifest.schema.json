@@ -265,6 +265,9 @@
                   }
                 }
               },
+              "eventHandlers": {
+                "type": "boolean"
+              },
               "stripe": {
                 "type": "object",
                 "additionalProperties": {

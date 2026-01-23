@@ -315,9 +315,30 @@ export const SaasWorkloadAppSchema = z.object({
     .optional(),
 
   /**
+   * Create EventBridge event handler Lambda functions for this brand
+   * Creates: tier-changed-{brand}, upgrade-handler-{brand} Lambdas
+   * Creates: EventBridge rules filtered by productId
+   * @default false
+   */
+  eventHandlers: z.boolean().optional(),
+
+  /**
    * Stripe configuration for this brand
-   * Can be environment-specific (stripe.nprd, stripe.prod) or global
-   * Price IDs are injected as environment variables
+   * Environment-specific (stripe.nprd, stripe.prod)
+   * Price IDs are injected as Lambda environment variables:
+   * - STRIPE_PRICE_ID_MONTHLY_{BRAND} (uppercase brand name)
+   * - STRIPE_PRICE_ID_ANNUAL_{BRAND} (uppercase brand name)
+   *
+   * @example
+   * ```yaml
+   * stripe:
+   *   nprd:
+   *     priceIdMonthly: "price_1Sm1sdDjOkuN3FpRw3vTUC2p"
+   *     priceIdAnnual: "price_1Sm1shDjOkuN3FpRr9JQedbm"
+   *   prod:
+   *     priceIdMonthly: "price_live_monthly_xxx"
+   *     priceIdAnnual: "price_live_annual_xxx"
+   * ```
    */
   stripe: z
     .record(
