@@ -254,6 +254,8 @@ export type SaasEdgeApp = z.infer<typeof SaasEdgeAppSchema>;
  * - lambdaApi: true → Lambda function + API Gateway (event-driven, scales to zero)
  * - webappS3: true → S3 bucket for static webapp hosting (React Native Web / Expo)
  * - marketingS3: true → S3 bucket for marketing site hosting (Next.js static export)
+ * - eventHandlers: true → EventBridge event handler Lambdas (tier-changed, upgrade-handler)
+ * - scheduledJobs: [] → Scheduled Lambda jobs with EventBridge rules (auto-matcher, etc.)
  */
 export const SaasWorkloadAppSchema = z.object({
   /**
@@ -323,6 +325,14 @@ export const SaasWorkloadAppSchema = z.object({
   eventHandlers: z.boolean().optional(),
 
   /**
+   * Enable scheduled cleanup of expired refresh tokens
+   * Creates: Lambda function + EventBridge rule (daily at 2 AM EST)
+   * Cleans up expired refresh tokens from DynamoDB core table
+   * @default false
+   */
+  refreshTokenCleanup: z.boolean().optional(),
+
+  /**
    * Stripe configuration for this brand
    * Environment-specific (stripe.nprd, stripe.prod)
    * Price IDs are injected as Lambda environment variables:
@@ -350,9 +360,80 @@ export const SaasWorkloadAppSchema = z.object({
       }),
     )
     .optional(),
+
+  /**
+   * Scheduled background jobs configuration for this brand
+   * Creates Lambda functions with EventBridge scheduled rules
+   * Jobs run periodic tasks like transaction matching, unlock checking, budget rollovers
+   *
+   * @example
+   * ```yaml
+   * scheduledJobs:
+   *   - name: auto-matcher
+   *     description: "Generate Smart Suggestions for uncategorized transactions"
+   *     schedule: "rate(1 hour)"
+   *     memorySize: 1024
+   *     timeout: 300
+   *   - name: unlock-checker
+   *     schedule: "rate(15 minutes)"
+   *   - name: rollover
+   *     schedule: "cron(0 6 1 * ? *)"
+   * ```
+   */
+  scheduledJobs: z
+    .array(
+      z.object({
+        /**
+         * Job name (e.g., 'auto-matcher', 'unlock-checker', 'rollover')
+         * Used for Lambda function naming and ECR image command
+         */
+        name: z.string().min(1),
+
+        /**
+         * Human-readable description of what the job does
+         */
+        description: z.string().optional(),
+
+        /**
+         * EventBridge schedule expression
+         * Supports both rate and cron expressions:
+         * - rate(1 hour), rate(15 minutes), rate(1 day)
+         * - cron(0 6 1 * ? *) - 1st of month at 6 AM UTC
+         * @see https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-scheduled-rule-pattern.html
+         */
+        schedule: z.string().min(1),
+
+        /**
+         * Memory size in MB
+         * More memory = more CPU = faster execution
+         * @default 1024
+         */
+        memorySize: z.number().min(128).max(10240).optional(),
+
+        /**
+         * Timeout in seconds
+         * Background jobs may need longer timeouts than API handlers
+         * @default 300 (5 minutes)
+         */
+        timeout: z.number().min(1).max(900).optional(),
+
+        /**
+         * Whether the schedule rule is enabled
+         * Set to false to disable the job without removing it
+         * @default true
+         */
+        enabled: z.boolean().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export type SaasWorkloadApp = z.infer<typeof SaasWorkloadAppSchema>;
+
+/**
+ * Scheduled job configuration type
+ */
+export type ScheduledJobConfig = NonNullable<SaasWorkloadApp['scheduledJobs']>[number];
 
 /**
  * Unified Application Configuration Schema

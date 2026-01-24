@@ -171,6 +171,8 @@ export type {
 export type {
   UnifiedAppConfig,
   SaasApp,
+  SaasWorkloadApp,
+  ScheduledJobConfig,
   DeploymentTarget,
   EnvironmentConfig,
 } from './applications';

@@ -27,6 +27,7 @@ export {
   type SaasEdgeApp,
   type SaasEdgeDistribution,
   type SaasWorkloadApp,
+  type ScheduledJobConfig,
   type DistributionType,
   type OriginType,
   type ServiceType,
