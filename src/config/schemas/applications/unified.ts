@@ -318,8 +318,8 @@ export const SaasWorkloadAppSchema = z.object({
 
   /**
    * Create EventBridge event handler Lambda functions for this brand
-   * Creates: tier-changed-{brand}, upgrade-handler-{brand} Lambdas
-   * Creates: EventBridge rules filtered by productId
+   * Currently only creates auto-matcher-handler for brands that need it
+   * Note: upgrade-handler and trial-expiry handlers were removed - tier is now read from JWT only
    * @default false
    */
   eventHandlers: z.boolean().optional(),
