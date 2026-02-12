@@ -1,3 +1,8 @@
+---
+inclusion: fileMatch
+fileMatchPattern: 'src/**/*'
+---
+
 # CodeIQLabs AWS Utils (@codeiqlabs/aws-utils)
 
 **Framework-agnostic AWS utilities for naming, tagging, manifest validation, and schema-driven
@@ -305,10 +310,6 @@ Terraform, Pulumi, AWS SDK) without coupling to CDK.
   [CHANGELOG](./CHANGELOG.md)
 
 ---
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 

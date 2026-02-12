@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+inclusion: always
 ---
 
 ## Purpose
@@ -9,8 +9,8 @@ Provides:
 
 - **Schema-driven configuration** - Zod schemas for AWS manifests using
   convention-over-configuration (presence implies enabled)
-- **SaaS application schemas** - `saasEdge` (CloudFront/S3) and `saasWorkload` (ECS/Aurora) for
-  multi-brand deployments
+- **SaaS application schemas** - `saasEdge` (CloudFront/S3) and `saasWorkload` (Lambda/DynamoDB) for
+  multi-brand deployments, unified in a single schema
 - **Standardized resource naming** - Consistent naming for stacks, S3 buckets, IAM roles, SSM
   parameters, domains
 - **Consistent tagging** - Environment-aware tag generation with standard tag sets
@@ -58,83 +58,20 @@ infrastructure.
 │  - @codeiqlabs/aws-cdk (CDK constructs layer)               │
 │  - codeiqlabs-management-aws (Organizations, SSO)           │
 │  - codeiqlabs-customization-aws (CloudFront, VPC Origins)   │
-│  - codeiqlabs-saas-aws (ECS, Aurora, Secrets)               │
+│  - codeiqlabs-saas-aws (Lambda, DynamoDB, API Gateway)      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Quick Start
 
-### Development
+See `.kiro/steering/build.md` for detailed build process, dependency chain, and troubleshooting.
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build the package
-pnpm run build
-
-# Run tests
-pnpm run test:all
-
-# Generate JSON schemas for IDE IntelliSense
-pnpm run generate-schemas
-
-# Lint and format
-pnpm run lint
-pnpm run format:check
+pnpm install && pnpm run build
 ```
 
-### Publishing (Automated via CI)
-
-The release workflow is automated via GitHub Actions using `changesets/action`:
-
-1. **Create a changeset** describing your changes:
-
-   ```bash
-   pnpm changeset
-   ```
-
-2. **Commit and push** the changeset file along with your code changes
-
-3. **CI opens a "Version Packages" PR** automatically when changesets are detected on `main`
-
-4. **Merge the "Version Packages" PR** when ready to release - CI will:
-   - Bump `package.json` version
-   - Update `CHANGELOG.md`
-   - Publish to GitHub Packages
-   - Create a Git tag
-
-> **⚠️ Important**: Do NOT run `pnpm changeset:version` locally or manually bump `package.json` -
-> the CI pipeline handles versioning automatically.
-
-### Consuming in Other Repos
-
-```bash
-# Install the package
-pnpm add @codeiqlabs/aws-utils
-
-# Use in code
-import { generateStackName, ResourceNaming, loadManifest } from '@codeiqlabs/aws-utils';
-```
-
-### Local Development (File References)
-
-When developing locally, use file references to ensure you're using the latest local code:
-
-```json
-{
-  "dependencies": {
-    "@codeiqlabs/aws-utils": "file:../codeiqlabs-aws-utils"
-  }
-}
-```
-
-After rebuilding aws-utils, reinstall dependencies in consuming repos:
-
-```bash
-cd ../codeiqlabs-aws-utils && pnpm run build
-cd ../codeiqlabs-aws-cdk && rm -rf node_modules pnpm-lock.yaml && pnpm install
-```
+This is the FIRST library in the dependency chain. After changes: build this → build aws-cdk →
+reinstall in consuming repos. See steering file for full details.
 
 ## Dependencies
 
@@ -185,9 +122,9 @@ cd ../codeiqlabs-aws-cdk && rm -rf node_modules pnpm-lock.yaml && pnpm install
 
 ### SaaS Edge/Workload Split (v1.10.0)
 
-- **Why**: Clear separation between management account (CloudFront, S3) and workload accounts (ECS,
-  Aurora)
-- **How**: `saasEdge` for customization-aws, `saasWorkload` for saas-aws
+- **Why**: Clear separation between management account (CloudFront, S3) and workload accounts
+  (Lambda, DynamoDB, API Gateway)
+- **How**: `saasEdge` for customization-aws, `saasWorkload` for saas-aws, unified in single schema
 - **Trade-off**: Two sections instead of one, but clearer ownership
 
 ### Zod for Schema Validation
@@ -230,27 +167,31 @@ cd ../codeiqlabs-aws-cdk && rm -rf node_modules pnpm-lock.yaml && pnpm install
 
 - **Don't add CDK-specific code here** - Use `@codeiqlabs/aws-cdk` for CDK constructs
 - **Don't publish without running tests** - `prepublishOnly` script prevents this
-- **Don't manually edit version numbers** - Use changesets workflow; CI handles versioning
-- **Don't run `pnpm changeset:version` locally** - CI runs this automatically when merging the
-  "Version Packages" PR
 - **Don't hardcode versions in documentation** - Use dynamic badges or reference `package.json`
 - **Don't skip the build step** - Tests and publishing require compiled output
 - **Don't commit dist/ or schemas/ to git** - Build artifacts are generated, not source
 
+## Steering Files Guide
+
+| Working on...                      | Apply guidance from...     |
+| ---------------------------------- | -------------------------- |
+| `src/naming/**` or resource naming | `.kiro/steering/naming.md` |
+| Build/publish tasks                | `.kiro/steering/build.md`  |
+
 ## Key Files
 
-| File/Directory                        | Purpose                                            |
-| ------------------------------------- | -------------------------------------------------- |
-| `src/config/schemas/`                 | Zod schemas for manifest validation                |
-| `src/config/schemas/manifest.ts`      | Root manifest schema                               |
-| `src/config/schemas/saas-workload.ts` | SaaS workload configuration schema                 |
-| `src/config/schemas/resources/`       | Resource-specific schemas (DynamoDB, Lambda, etc.) |
-| `src/naming/resource-naming.ts`       | Standardized resource naming utilities             |
-| `src/tagging/resource-tagging.ts`     | Consistent tagging utilities                       |
-| `src/helpers/env.ts`                  | Environment variable validation helpers            |
-| `src/constants.ts`                    | Shared constants (ENV_VALUES, etc.)                |
-| `src/index.ts`                        | Main package exports                               |
-| `package.json`                        | Package metadata, dual ESM/CJS exports             |
+| File/Directory                               | Purpose                                            |
+| -------------------------------------------- | -------------------------------------------------- |
+| `src/config/schemas/`                        | Zod schemas for manifest validation                |
+| `src/config/schemas/applications/unified.ts` | Unified app config (saasEdge + saasWorkload)       |
+| `src/config/schemas/base/`                   | Base schemas (naming, environments, domains, etc.) |
+| `src/config/schemas/resources/`              | Resource-specific schemas (DynamoDB, Lambda, etc.) |
+| `src/naming/resource-naming.ts`              | Standardized resource naming utilities             |
+| `src/tagging/resource-tagging.ts`            | Consistent tagging utilities                       |
+| `src/helpers/env.ts`                         | Environment variable validation helpers            |
+| `src/constants/`                             | Shared constants (ENV_VALUES, environments)        |
+| `src/index.ts`                               | Main package exports                               |
+| `package.json`                               | Package metadata, dual ESM/CJS exports             |
 
 ## Source of Truth
 

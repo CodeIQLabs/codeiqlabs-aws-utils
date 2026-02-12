@@ -268,7 +268,21 @@
               "eventHandlers": {
                 "type": "boolean"
               },
-              "refreshTokenCleanup": {
+              "secrets": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "auth-secret",
+                    "google-oauth",
+                    "apple-oauth",
+                    "microsoft-oauth",
+                    "stripe",
+                    "plaid"
+                  ]
+                }
+              },
+              "trialExpiryChecker": {
                 "type": "boolean"
               },
               "stripe": {

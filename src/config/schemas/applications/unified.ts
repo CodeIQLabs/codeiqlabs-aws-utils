@@ -325,12 +325,44 @@ export const SaasWorkloadAppSchema = z.object({
   eventHandlers: z.boolean().optional(),
 
   /**
-   * Enable scheduled cleanup of expired refresh tokens
-   * Creates: Lambda function + EventBridge rule (daily at 2 AM EST)
-   * Cleans up expired refresh tokens from DynamoDB core table
+   * Secrets to create for this brand in Secrets Manager
+   * Each entry creates a secret at: saas/{env}/{brand}/{secret-type}
+   *
+   * Available secret types:
+   * - google-oauth: Google OAuth credentials (JSON: clientId, clientSecret)
+   * - apple-oauth: Apple Sign In credentials (JSON: clientId, teamId, keyId, privateKey)
+   * - microsoft-oauth: Microsoft Entra ID credentials (JSON: clientId, clientSecret)
+   * - stripe: Stripe keys (creates stripe-secret-key, stripe-webhook-secret, stripe-publishable-key)
+   * - plaid: Plaid API credentials (JSON: clientId, secret, env, webhookUrl)
+   *
+   * Shared secrets (auth-secret) are created once per environment: saas/{env}/shared/{key}
+   * Per-brand secrets are created per brand: saas/{env}/{brand}/{key}
+   *
+   * For core, OAuth secrets (google-oauth, apple-oauth, microsoft-oauth) are created
+   * for ALL brands that have domains, since api-core handles auth for all brands.
+   *
+   * @example
+   * ```yaml
+   * secrets:
+   *   - auth-secret    # shared: saas/{env}/shared/auth-secret
+   *   - google-oauth   # per-brand: saas/{env}/{brand}/google-oauth
+   *   - stripe
+   *   - plaid
+   * ```
+   */
+  secrets: z
+    .array(
+      z.enum(['auth-secret', 'google-oauth', 'apple-oauth', 'microsoft-oauth', 'stripe', 'plaid']),
+    )
+    .optional(),
+
+  /**
+   * Enable scheduled trial expiry checker
+   * Creates: Lambda function + EventBridge rule (daily at midnight UTC)
+   * Expires trials, downgrades to free, disconnects non-primary Plaid connections
    * @default false
    */
-  refreshTokenCleanup: z.boolean().optional(),
+  trialExpiryChecker: z.boolean().optional(),
 
   /**
    * Stripe configuration for this brand
@@ -343,8 +375,8 @@ export const SaasWorkloadAppSchema = z.object({
    * ```yaml
    * stripe:
    *   nprd:
-   *     priceIdMonthly: "price_1Sm1sdDjOkuN3FpRw3vTUC2p"
-   *     priceIdAnnual: "price_1Sm1shDjOkuN3FpRr9JQedbm"
+   *     priceIdMonthly: "price_1SmnhFRmKOeNH4zCUFCADHCX"
+   *     priceIdAnnual: "price_1SyQQlRmKOeNH4zCCwlNIjPj"
    *   prod:
    *     priceIdMonthly: "price_live_monthly_xxx"
    *     priceIdAnnual: "price_live_annual_xxx"

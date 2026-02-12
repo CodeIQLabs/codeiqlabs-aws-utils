@@ -1,6 +1,6 @@
 {
   "name": "@codeiqlabs/aws-utils",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "AWS utilities including resource naming, configuration validation, and environment management for CodeIQLabs projects",
   "sideEffects": false,
   "type": "module",
