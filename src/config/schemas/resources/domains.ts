@@ -74,6 +74,43 @@ export const RegisteredDomainSchema = z.object({
    * References keys from the environments section (e.g., ["nprd", "prod"])
    */
   allowedEnvironments: z.array(z.string()).optional(),
+
+  /**
+   * Email forwarding configuration for this domain
+   * When configured, SES email receiving and forwarding is set up:
+   * - SES domain identity with DKIM verification
+   * - MX, SPF, and DMARC DNS records
+   * - Receipt rules to forward inbound email to specified destinations
+   * - SMTP credentials for "Send mail as" in Gmail
+   */
+  email: z
+    .object({
+      /**
+       * Email forwarding rules
+       * Each rule maps a local part (e.g., "hello", "support", or "*" for catch-all)
+       * to a destination email address
+       */
+      forwarding: z
+        .array(
+          z.object({
+            /** Local part of the email address (e.g., "hello", "support", "*" for catch-all) */
+            from: z.string().min(1),
+            /** Destination email address to forward to */
+            to: z.string().email(),
+          }),
+        )
+        .min(1),
+      /**
+       * Extra TXT values merged into the apex SPF TXT record set.
+       * Route53 allows one TXT record set per name, so a pre-existing apex
+       * TXT (e.g. google-site-verification on a registrar-created zone)
+       * must be carried here for CDK to own the merged set. Silent zod
+       * stripping of this key cost the priorshq.com verification value on
+       * first deploy (2026-08-22) -- the field exists so that can't recur.
+       */
+      additionalApexTxtValues: z.array(z.string().min(1)).optional(),
+    })
+    .optional(),
 });
 
 /**
