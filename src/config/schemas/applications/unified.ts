@@ -334,12 +334,13 @@ export const SaasWorkloadAppSchema = z.object({
    * - microsoft-oauth: Microsoft Entra ID credentials (JSON: clientId, clientSecret)
    * - stripe: Stripe keys (creates stripe-secret-key, stripe-webhook-secret, stripe-publishable-key)
    * - plaid: Plaid API credentials (JSON: clientId, secret, env, webhookUrl)
+   * - ses-smtp: SES SMTP credentials for outbound email (contact form etc.)
    *
    * Shared secrets (auth-secret) are created once per environment: saas/{env}/shared/{key}
    * Per-brand secrets are created per brand: saas/{env}/{brand}/{key}
    *
-   * For core, OAuth secrets (google-oauth, apple-oauth, microsoft-oauth) are created
-   * for ALL brands that have domains, since api-core handles auth for all brands.
+   * For core, OAuth and ses-smtp secrets are created for ALL brands that have domains,
+   * since api-core handles auth and outbound email for all brands.
    *
    * @example
    * ```yaml
@@ -348,11 +349,20 @@ export const SaasWorkloadAppSchema = z.object({
    *   - google-oauth   # per-brand: saas/{env}/{brand}/google-oauth
    *   - stripe
    *   - plaid
+   *   - ses-smtp
    * ```
    */
   secrets: z
     .array(
-      z.enum(['auth-secret', 'google-oauth', 'apple-oauth', 'microsoft-oauth', 'stripe', 'plaid']),
+      z.enum([
+        'auth-secret',
+        'google-oauth',
+        'apple-oauth',
+        'microsoft-oauth',
+        'stripe',
+        'plaid',
+        'ses-smtp',
+      ]),
     )
     .optional(),
 
@@ -370,6 +380,13 @@ export const SaasWorkloadAppSchema = z.object({
    * Price IDs are injected as Lambda environment variables:
    * - STRIPE_PRICE_ID_MONTHLY_{BRAND} (uppercase brand name)
    * - STRIPE_PRICE_ID_ANNUAL_{BRAND} (uppercase brand name)
+   * - STRIPE_PRICE_ID_EXTRA_CONNECTION_MONTHLY_{BRAND} (uppercase brand name)
+   * - STRIPE_PRICE_ID_EXTRA_CONNECTION_ANNUAL_{BRAND} (uppercase brand name)
+   *
+   * Stripe forbids mixing intervals on a single subscription, so per-unit
+   * overage prices come in pairs — one for monthly subscribers, one for
+   * annual subscribers. The runtime picks the matching one based on the
+   * customer's active subscription cadence.
    *
    * @example
    * ```yaml
@@ -377,9 +394,13 @@ export const SaasWorkloadAppSchema = z.object({
    *   nprd:
    *     priceIdMonthly: "price_1SmnhFRmKOeNH4zCUFCADHCX"
    *     priceIdAnnual: "price_1SyQQlRmKOeNH4zCCwlNIjPj"
+   *     priceIdExtraConnectionMonthly: "price_test_extra_4_mo_xxx"
+   *     priceIdExtraConnectionAnnual: "price_test_extra_48_yr_xxx"
    *   prod:
    *     priceIdMonthly: "price_live_monthly_xxx"
    *     priceIdAnnual: "price_live_annual_xxx"
+   *     priceIdExtraConnectionMonthly: "price_live_extra_4_mo_xxx"
+   *     priceIdExtraConnectionAnnual: "price_live_extra_48_yr_xxx"
    * ```
    */
   stripe: z
@@ -389,6 +410,10 @@ export const SaasWorkloadAppSchema = z.object({
         priceIdMonthly: z.string().optional(),
         /** Annual subscription price ID */
         priceIdAnnual: z.string().optional(),
+        /** Per-unit price ID for connections beyond included quota — for monthly subscribers */
+        priceIdExtraConnectionMonthly: z.string().optional(),
+        /** Per-unit price ID for connections beyond included quota — for annual subscribers */
+        priceIdExtraConnectionAnnual: z.string().optional(),
       }),
     )
     .optional(),
@@ -457,6 +482,54 @@ export const SaasWorkloadAppSchema = z.object({
         enabled: z.boolean().optional(),
       }),
     )
+    .optional(),
+
+  /**
+   * Per-brand operational alarms for runtime issues that need ops follow-up.
+   * Each alarm is opt-in by presence; omit the section to skip wiring.
+   *
+   * @example
+   * ```yaml
+   * alarms:
+   *   orphanPlaidItem:
+   *     opsEmail: admin@savvue.com
+   *   unknownPriceId:
+   *     opsEmail: admin@savvue.com
+   * ```
+   */
+  alarms: z
+    .object({
+      /**
+       * CloudWatch alarm + SNS email for `plaid_item_remove_failed_orphan`
+       * log markers emitted by api-savvue when a Plaid `/item/remove` call
+       * fails during a user-initiated disconnect. The local connection row
+       * is gone but the Plaid item is still active and billable; the alert
+       * carries the providerItemId for manual cleanup in the Plaid Dashboard.
+       * See Gap-11 in stripe-integration-spec.
+       */
+      orphanPlaidItem: z
+        .object({
+          /** Email subscribed to the SNS topic for orphan-item alerts. */
+          opsEmail: z.string().email(),
+        })
+        .optional(),
+
+      /**
+       * CloudWatch alarm + SNS email for `unknown_priceId_in_*` log markers
+       * emitted by api-core (billing.ts, webhook.ts) when a Stripe price ID
+       * fails to map to a known plan via `getPlanFromPriceId`. Indicates
+       * env-var/manifest drift — a price ID flowed through Stripe that the
+       * deployed Lambda doesn't recognize. Wire this on the brand entry
+       * whose `lambdaApi` covers `api-core` (i.e. the `core` brand). See
+       * Gap-6 / cross-cutting PX.1 in stripe-integration-spec.
+       */
+      unknownPriceId: z
+        .object({
+          /** Email subscribed to the SNS topic for unknown-priceId alerts. */
+          opsEmail: z.string().email(),
+        })
+        .optional(),
+    })
     .optional(),
 });
 

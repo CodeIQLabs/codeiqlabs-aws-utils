@@ -278,7 +278,8 @@
                     "apple-oauth",
                     "microsoft-oauth",
                     "stripe",
-                    "plaid"
+                    "plaid",
+                    "ses-smtp"
                   ]
                 }
               },
@@ -294,6 +295,12 @@
                       "type": "string"
                     },
                     "priceIdAnnual": {
+                      "type": "string"
+                    },
+                    "priceIdExtraConnectionMonthly": {
+                      "type": "string"
+                    },
+                    "priceIdExtraConnectionAnnual": {
                       "type": "string"
                     }
                   },
@@ -339,6 +346,44 @@
                     }
                   }
                 }
+              },
+              "alarms": {
+                "type": "object",
+                "properties": {
+                  "orphanPlaidItem": {
+                    "type": "object",
+                    "properties": {
+                      "opsEmail": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "required": ["opsEmail"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "opsEmail": "Missing required property: opsEmail"
+                      }
+                    }
+                  },
+                  "unknownPriceId": {
+                    "type": "object",
+                    "properties": {
+                      "opsEmail": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "required": ["opsEmail"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "opsEmail": "Missing required property: opsEmail"
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "required": ["name"],
@@ -924,6 +969,50 @@
                     "type": "array",
                     "items": {
                       "type": "string"
+                    }
+                  },
+                  "email": {
+                    "type": "object",
+                    "properties": {
+                      "forwarding": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "from": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "to": {
+                              "type": "string",
+                              "format": "email"
+                            }
+                          },
+                          "required": ["from", "to"],
+                          "additionalProperties": false,
+                          "errorMessage": {
+                            "required": {
+                              "from": "Missing required property: from",
+                              "to": "Missing required property: to"
+                            }
+                          }
+                        },
+                        "minItems": 1
+                      },
+                      "additionalApexTxtValues": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "required": ["forwarding"],
+                    "additionalProperties": false,
+                    "errorMessage": {
+                      "required": {
+                        "forwarding": "Missing required property: forwarding"
+                      }
                     }
                   }
                 },
