@@ -64,14 +64,12 @@ infrastructure.
 
 ## Quick Start
 
-See `.kiro/steering/build.md` for detailed build process, dependency chain, and troubleshooting.
-
 ```bash
 pnpm install && pnpm run build
 ```
 
-This is the FIRST library in the dependency chain. After changes: build this → build aws-cdk →
-reinstall in consuming repos. See steering file for full details.
+First library in the dependency chain. Full build/test/troubleshooting workflow:
+[`codeiqlabs-docs/runbooks/build-cdk-libraries.md`](../codeiqlabs-docs/runbooks/build-cdk-libraries.md).
 
 ## Dependencies
 
@@ -175,8 +173,8 @@ reinstall in consuming repos. See steering file for full details.
 
 | Working on...                      | Apply guidance from...     |
 | ---------------------------------- | -------------------------- |
-| `src/naming/**` or resource naming | `.kiro/steering/naming.md` |
-| Build/publish tasks                | `.kiro/steering/build.md`  |
+| `src/naming/**` or resource naming | `docs/steering/naming.md` |
+| Build/publish tasks                | `docs/steering/build.md`  |
 
 ## Key Files
 
